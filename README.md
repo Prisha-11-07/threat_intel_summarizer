@@ -28,7 +28,7 @@ Security Operations Centers (SOCs) and Threat Intelligence teams receive dozens 
 
 ### 2. Hybrid NLP & GenAI Extraction Engine
 - **Named Entity Recognition (NER):** Uses `spacy` to dynamically identify Contextual Threat Entities (Organizations, Geographies, Threat Actors).
-- **GenAI Summarization:** Integrates Google's `gemini-1.5-flash` LLM to read the entire parsed text and draft targeted CISO-level executive summaries.
+- **GenAI Summarization:** Integrates Google's `gemini-1.5-flash` or NVIDIA NIM's `meta/llama-3.2` LLM to read the entire parsed text and draft targeted CISO-level executive summaries.
 - **Auto Refanging / Defanging:** Converts obfuscated indicators back into operational formats while allowing safe defanged viewing.
 - **Indicators of Compromise (IoCs):**
   - **Network:** IPv4, IPv6, Domains, FQDNs, URLs/URIs, Email addresses.
@@ -110,9 +110,11 @@ pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 ```
 
-*(Optional)* For Advanced GenAI Summaries, set your Google Gemini API Key:
+*(Optional)* For Advanced GenAI Summaries, set your Google Gemini API Key or an NVIDIA NIM API Key (starts with `nvapi-`):
 ```powershell
-export GEMINI_API_KEY="your_api_key_here"
+export GEMINI_API_KEY="your_gemini_key"
+# OR
+export NVIDIA_API_KEY="your_nvidia_nim_key"
 ```
 
 ### 2. Run Automated Test Suite

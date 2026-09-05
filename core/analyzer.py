@@ -198,9 +198,9 @@ class ThreatAnalyzer:
     """Performs deep heuristic and LLM analysis on parsed threat intelligence reports."""
 
     def __init__(self, api_key: Optional[str] = None, api_base: Optional[str] = None):
-        self.api_key = api_key or os.environ.get("OPENAI_API_KEY") or os.environ.get("GEMINI_API_KEY")
+        self.api_key = api_key or os.environ.get("OPENAI_API_KEY") or os.environ.get("GEMINI_API_KEY") or os.environ.get("NVIDIA_API_KEY")
         self.api_base = api_base or os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
-        if genai and self.api_key:
+        if genai and self.api_key and not self.api_key.startswith("nvapi-"):
             genai.configure(api_key=self.api_key)
 
     def analyze(self, parsed_report: Dict[str, Any], extracted_iocs: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -504,7 +504,33 @@ class ThreatAnalyzer:
             f"deploy the generated firewall blocklists, IDS signatures, and endpoint detection queries."
         )
 
-        if genai and self.api_key and full_text:
+        if self.api_key and self.api_key.startswith("nvapi-") and full_text:
+            try:
+                url = "https://integrate.api.nvidia.com/v1/chat/completions"
+                headers = {
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                }
+                prompt = f"""You are a senior SOC analyst. Summarize the following threat intelligence report text.
+Focus on the attack methodology, tactics, and impact. Keep it concise, professional, and tailored for a CISO briefing.
+
+Report Text:
+{full_text[:30000]}"""
+                
+                payload = {
+                    "model": "meta/llama-3.2-11b-vision-instruct",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": 500
+                }
+                req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers, method="POST")
+                with urllib.request.urlopen(req, timeout=30) as response:
+                    res_data = json.loads(response.read().decode('utf-8'))
+                    return res_data['choices'][0]['message']['content'].strip()
+            except Exception:
+                pass # Fallback to heuristic
+
+        elif genai and self.api_key and full_text:
             try:
                 # Use gemini-1.5-flash as default fast model
                 model = genai.GenerativeModel('gemini-1.5-flash')
