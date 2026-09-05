@@ -1,12 +1,3 @@
-/mnt/workstation/learning/aiml/cia3/threat_intel_summarizer/core/analyzer.py:21: FutureWarning: 
-
-All support for the `google.generativeai` package has ended. It will no longer be receiving 
-updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
-See README for more details:
-
-https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
-
-  import google.generativeai as genai
 [*] Reading and sanitizing PDF document: samples/reports/Mandiant_APT29_Cloud_Token_Theft_and_Persistence.pdf
 [*] Extracting indicators across 2 page(s)...
 [*] Synthesizing adversary methodology, Kill Chain, and MITRE mapping...
@@ -35,35 +26,35 @@ https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/READM
 
 **Summary:**
 
-Mandiant has identified an unprecedented espionage campaign by APT29, a Russian Foreign Intelligence Service (SVR) affiliated group. The attackers targeted Microsoft 365 and Entra ID cloud tenants, compromising non-production legacy testing accounts to achieve persistent access to diplomatic and defense communications.
+Mandiant has identified an advanced threat campaign orchestrated by APT29, a Russian Foreign Intelligence Service (SVR) affiliated group. The attackers targeted Microsoft 365 and Entra ID cloud tenants using sophisticated techniques, compromising non-production legacy testing accounts to achieve persistent, silent access to sensitive communications.
 
 **Attack Methodology:**
 
 1. Compromised non-production legacy testing accounts lacking multi-factor authentication.
-2. Gained illicit application permissions and minted custom OAuth bearer tokens for silent access.
+2. Granted illicit application permissions and minted custom OAuth bearer tokens for persistent access.
 3. Deployed specialized backdoor utilities (MagicWeb and FoggyWeb) to subvert Active Directory Federation Services (AD FS) and forge authentication SAML tokens.
 4. Configured persistence via scheduled tasks and registry run keys on corporate Windows workstations.
+5. Weaponized CVE-2023-38831 (WinRAR code execution vulnerability) and CVE-2024-21413 (Microsoft Outlook RCE) to deliver Cobalt Strike and custom loader payloads.
 
 **Tactics:**
 
-1. Spear-phishing lure via email (admin[@]embassy-support-desk[.]org).
-2. Exploited vulnerabilities:
-	* CVE-2023-38831 (WinRAR code execution vulnerability).
-	* CVE-2024-21413 (Microsoft Outlook RCE).
-3. Delivered Cobalt Strike and custom loader payloads to foreign ministry personnel.
+1. Spear-phishing lure using email from a spoofed embassy-support-desk email address.
+2. Credential harvesting and token extraction using fake Entra ID login and token C2 domains.
+3. Data exfiltration relay using graph-api-telemetry.org domain.
 
 **Impact:**
 
-1. Unprecedented espionage campaign targeting diplomatic and defense communications.
-2. Deep persistence mechanisms allowing attackers to maintain access over an extended period.
-3. Potential data exfiltration via relay domain (graph-api-telemetry[.]org).
+1. Unprecedented espionage campaigns targeting diplomatic and defense communications.
+2. Potential compromise of sensitive information via persistent, silent access.
+3. Increased risk of data exfiltration and intellectual property theft.
 
 **Recommendations:**
 
-1. Implement multi-factor authentication for all accounts, including non-production legacy testing accounts.
+1. Implement multi-factor authentication for all cloud tenant accounts.
 2. Regularly review and update application permissions and OAuth bearer tokens.
-3. Deploy advanced threat detection and response capabilities to identify and mitigate potential attacks.
-4. Conduct regular vulnerability assessments and patching to prevent exploitation of known vulnerabilities.
+3. Monitor for suspicious activity and indicators of compromise (IoCs) listed in the report.
+4. Implement robust security measures to prevent credential harvesting and token extraction.
+5. Conduct regular security awareness training for personnel to prevent spear-phishing attacks.
 
 [+] MITRE ATT&CK TECHNIQUES DETECTED:
     - T1566      Phishing                         [Initial Access]

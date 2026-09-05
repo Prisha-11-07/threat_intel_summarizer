@@ -18,9 +18,9 @@ except ImportError:
     pass
 
 try:
-    import google.generativeai as genai
+    from google import genai as google_genai
 except ImportError:
-    genai = None
+    google_genai = None
 
 
 # MITRE ATT&CK Technique Database
@@ -206,8 +206,12 @@ class ThreatAnalyzer:
     def __init__(self, api_key: Optional[str] = None, api_base: Optional[str] = None):
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY") or os.environ.get("GEMINI_API_KEY") or os.environ.get("NVIDIA_API_KEY")
         self.api_base = api_base or os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
-        if genai and self.api_key and not self.api_key.startswith("nvapi-"):
-            genai.configure(api_key=self.api_key)
+        self._gemini_client = None
+        if google_genai and self.api_key and not self.api_key.startswith("nvapi-"):
+            try:
+                self._gemini_client = google_genai.Client(api_key=self.api_key)
+            except Exception:
+                pass
 
     def analyze(self, parsed_report: Dict[str, Any], extracted_iocs: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -536,23 +540,22 @@ Report Text:
             except Exception:
                 pass # Fallback to heuristic
 
-        elif genai and self.api_key and full_text:
+        elif self._gemini_client and full_text:
             try:
-                # Use gemini-1.5-flash as default fast model
-                model = genai.GenerativeModel('gemini-1.5-flash')
-                prompt = f"""
-                You are a senior SOC analyst. Summarize the following threat intelligence report text.
-                Focus on the attack methodology, tactics, and impact.
-                Keep it concise, professional, and tailored for a CISO briefing.
-                
-                Report Text:
-                {full_text[:30000]}
-                """
-                response = model.generate_content(prompt)
+                prompt = (
+                    "You are a senior SOC analyst. Summarize the following threat intelligence report text. "
+                    "Focus on the attack methodology, tactics, and impact. "
+                    "Keep it concise, professional, and tailored for a CISO briefing.\n\n"
+                    f"Report Text:\n{full_text[:30000]}"
+                )
+                response = self._gemini_client.models.generate_content(
+                    model="gemini-1.5-flash",
+                    contents=prompt
+                )
                 if response and response.text:
                     return response.text.strip()
             except Exception:
-                pass # Fallback to heuristic
+                pass  # Fallback to heuristic
                 
         return fallback_summary
 

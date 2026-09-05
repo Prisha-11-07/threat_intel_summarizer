@@ -272,6 +272,10 @@ class STIX21Generator:
             return f"[windows-registry-key:key = '{safe_val}']"
         elif ioc_type == "email":
             return f"[email-addr:value = '{safe_val}']"
+        elif ioc_type == "cve":
+            return f"[vulnerability:name = '{safe_val}']"
+        elif ioc_type == "mitre":
+            return f"[attack-pattern:external_references[*].external_id = '{safe_val}']"
 
         return ""
 
