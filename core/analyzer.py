@@ -506,29 +506,49 @@ class ThreatAnalyzer:
 
         if self.api_key and self.api_key.startswith("nvapi-") and full_text:
             try:
-                url = "https://integrate.api.nvidia.com/v1/chat/completions"
+                # 1. Fetch available models dynamically
+                models_url = "https://integrate.api.nvidia.com/v1/models"
                 headers = {
                     "Authorization": f"Bearer {self.api_key}",
                     "Accept": "application/json",
                     "Content-Type": "application/json"
                 }
+                
+                req = urllib.request.Request(models_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    models_data = json.loads(response.read().decode('utf-8'))
+                    all_models = [m['id'] for m in models_data.get('data', [])]
+                
+                # Filter for likely instruction/chat models, prioritize the one we know worked before
+                target_models = [m for m in all_models if "instruct" in m.lower() or "chat" in m.lower() or "llama" in m.lower()]
+                if "meta/llama-3.2-11b-vision-instruct" in target_models:
+                    target_models.insert(0, target_models.pop(target_models.index("meta/llama-3.2-11b-vision-instruct")))
+
                 prompt = f"""You are a senior SOC analyst. Summarize the following threat intelligence report text.
 Focus on the attack methodology, tactics, and impact. Keep it concise, professional, and tailored for a CISO briefing.
 
 Report Text:
 {full_text[:30000]}"""
-                
-                payload = {
-                    "model": "meta/llama-3.2-11b-vision-instruct",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 500
-                }
-                req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers, method="POST")
-                with urllib.request.urlopen(req, timeout=30) as response:
-                    res_data = json.loads(response.read().decode('utf-8'))
-                    return res_data['choices'][0]['message']['content'].strip()
+
+                # 2. Test models until one responds successfully
+                chat_url = "https://integrate.api.nvidia.com/v1/chat/completions"
+                for model_id in target_models[:10]: # Limit to trying 10 to avoid infinite hanging
+                    try:
+                        payload = {
+                            "model": model_id,
+                            "messages": [{"role": "user", "content": prompt}],
+                            "max_tokens": 500
+                        }
+                        chat_req = urllib.request.Request(chat_url, data=json.dumps(payload).encode('utf-8'), headers=headers, method="POST")
+                        with urllib.request.urlopen(chat_req, timeout=45) as chat_res:
+                            if chat_res.status == 200:
+                                res_data = json.loads(chat_res.read().decode('utf-8'))
+                                return res_data['choices'][0]['message']['content'].strip()
+                    except Exception:
+                        continue # Try the next model if 404, 500, or timeout
+
             except Exception:
-                pass # Fallback to heuristic
+                pass # Fallback to heuristic if all models fail or fetching models fails
 
         elif genai and self.api_key and full_text:
             try:
