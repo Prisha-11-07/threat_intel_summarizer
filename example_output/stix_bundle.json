@@ -1,0 +1,784 @@
+{
+  "type": "bundle",
+  "id": "bundle--2ff03346-2641-4e45-bd81-9bf9ce543f76",
+  "objects": [
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "SOC Threat Intelligence Automation Platform",
+      "identity_class": "organization",
+      "sectors": [
+        "defense",
+        "technology"
+      ],
+      "contact_information": "soc-intel-feed@enterprise-defense.local"
+    },
+    {
+      "type": "threat-actor",
+      "spec_version": "2.1",
+      "id": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "APT29",
+      "aliases": [
+        "Cozy Bear",
+        "Midnight Blizzard",
+        "NOBELIUM",
+        "The Dukes"
+      ],
+      "threat_actor_types": [
+        "cybercrime"
+      ],
+      "sophistication": "advanced",
+      "resource_level": "organization",
+      "primary_motivation": "espionage",
+      "description": "Threat actor tracked as APT29. Origin: Russian Federation (SVR). Tactics: Cloud identity compromise, OAuth application abuse, supply chain compromise, spear-phishing."
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--fb825d51-8dff-5436-b7d9-c0106268601b",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Cobalt Strike",
+      "is_family": true,
+      "malware_types": [
+        "backdoor",
+        "trojan"
+      ],
+      "description": "Malware family or tool 'Cobalt Strike' leveraged during intrusion operations."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--d007f93f-485f-5d2e-9a0f-3dffaf5b77f5",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--a4259a15-b11d-5de9-ad24-096c10b8d062",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Phishing",
+      "description": "Adversaries send spear-phishing messages with malicious attachments or links to gain initial access.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1566",
+          "url": "https://attack.mitre.org/techniques/T1566"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--4c13fd53-e9d0-5046-bcb0-6969f19f28f2",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f",
+      "target_ref": "attack-pattern--a4259a15-b11d-5de9-ad24-096c10b8d062"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--94103aba-a5c0-57c1-a64e-1e096281dd60",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Exploit Public-Facing Application",
+      "description": "Exploiting security vulnerabilities or zero-days in internet-exposed edge appliances, VPNs, or web applications.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1190",
+          "url": "https://attack.mitre.org/techniques/T1190"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--8a850b18-43a2-5383-8161-947b712943f9",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f",
+      "target_ref": "attack-pattern--94103aba-a5c0-57c1-a64e-1e096281dd60"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--4832558e-067e-52ca-85dd-81342c617175",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Valid Accounts",
+      "description": "Adversaries obtain and abuse credentials of existing enterprise or cloud accounts to bypass defenses.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1078",
+          "url": "https://attack.mitre.org/techniques/T1078"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--bb2e6750-5807-5c62-9df5-0a443f617398",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f",
+      "target_ref": "attack-pattern--4832558e-067e-52ca-85dd-81342c617175"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--ce3fe07a-7178-5597-8d42-72f57de83d48",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Registry Run Keys / Startup Folder",
+      "description": "Adding entries to Windows Registry Run keys or Startup folder for recurring payload execution upon user login.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1547.001",
+          "url": "https://attack.mitre.org/techniques/T1547/001"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0cb456e1-0c32-5e2e-b887-5822161eea0f",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f",
+      "target_ref": "attack-pattern--ce3fe07a-7178-5597-8d42-72f57de83d48"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--59a42bc4-7d34-5035-a2d1-d04f682272ed",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Scheduled Task/Job",
+      "description": "Creating scheduled tasks via schtasks.exe or cron jobs to maintain long-term unauthorized access.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1053",
+          "url": "https://attack.mitre.org/techniques/T1053"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--89c8c720-fcf9-594f-8dc9-5acd3b33a0c3",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f",
+      "target_ref": "attack-pattern--59a42bc4-7d34-5035-a2d1-d04f682272ed"
+    },
+    {
+      "type": "vulnerability",
+      "spec_version": "2.1",
+      "id": "vulnerability--3be65899-bc7c-5c1f-ba40-34caf02680ca",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "CVE-2023-38831",
+      "description": "Vulnerability CVE-2023-38831 exploited by APT29 for initial access.",
+      "external_references": [
+        {
+          "source_name": "cve",
+          "external_id": "CVE-2023-38831",
+          "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-38831"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--868f7fcd-f594-50f2-b31f-bc4baf7ba0ba",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "targets",
+      "source_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f",
+      "target_ref": "vulnerability--3be65899-bc7c-5c1f-ba40-34caf02680ca"
+    },
+    {
+      "type": "vulnerability",
+      "spec_version": "2.1",
+      "id": "vulnerability--e4d7ddf4-8b04-52b3-bf17-924412f04443",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "CVE-2024-21413",
+      "description": "Vulnerability CVE-2024-21413 exploited by APT29 for initial access.",
+      "external_references": [
+        {
+          "source_name": "cve",
+          "external_id": "CVE-2024-21413",
+          "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-21413"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--8eecbcba-0e26-5357-9eec-854b41992cd2",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "targets",
+      "source_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f",
+      "target_ref": "vulnerability--e4d7ddf4-8b04-52b3-bf17-924412f04443"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--7e6b4b58-e54e-51a8-8bf8-4b4f31db380e",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious URL: hxxps://auth-azure-sync[.]com/oauth/token/v2",
+      "description": "Indicator associated with APT29. Role: Command & Control (C2) Server. Source context: ...185.220.101.5 AD FS Token Extraction C2 High IPv4 45.154.255.89 Cobalt Strike Team Server High URL https://auth-azure-sync.com/oauth/token/v2 Malicious Token Endpoint High URL http://login-microsoftonline-verify.net/payload/l oader.bin Stage...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[url:value = 'https://auth-azure-sync.com/oauth/token/v2']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--3ce35b14-3e87-559b-b8f1-bf427658f6fd",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--7e6b4b58-e54e-51a8-8bf8-4b4f31db380e",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--2d986c0c-5bad-576a-abaf-f4c532a6b1fa",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--7e6b4b58-e54e-51a8-8bf8-4b4f31db380e",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--8d3a9954-32cc-591b-a436-ec70f4d84aab",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious URL: hxxp://login-microsoftonline-verify[.]net/payload/l",
+      "description": "Indicator associated with APT29. Role: Payload Delivery / Dropper. Source context: ...e Team Server High URL https://auth-azure-sync.com/oauth/token/v2 Malicious Token Endpoint High URL http://login-microsoftonline-verify.net/payload/l oader.bin Stage-2 Dropper URL High SHA-256 a3c1031d77a83d47a4697ff3f81e3a2c416805bb 2f61e8ec5d91361...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[url:value = 'http://login-microsoftonline-verify.net/payload/l']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 60
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--3b2295b1-9d1a-5f80-b2a5-b195e2cfc191",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--8d3a9954-32cc-591b-a436-ec70f4d84aab",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--bee24b2a-9339-5265-9f25-a5f0b4716571",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--8d3a9954-32cc-591b-a436-ec70f4d84aab",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--dab29a8f-2067-5101-807b-65cc10674c05",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious IPV4: 185[.]220[.]101[.]5",
+      "description": "Indicator associated with APT29. Role: Command & Control (C2) Server. Source context: ...redential Harvesting Endpoint High Domain graph-api-telemetry.org Data Exfiltration Relay High IPv4 185.220.101.5 AD FS Token Extraction C2 High IPv4 45.154.255.89 Cobalt Strike Team Server High URL https://auth-a...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[ipv4-addr:value = '185.220.101.5']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 60
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c2c92163-c211-5887-b89f-b969b8df3355",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--dab29a8f-2067-5101-807b-65cc10674c05",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--68d8d803-e50e-5f4c-b9f2-ce31a331c804",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--dab29a8f-2067-5101-807b-65cc10674c05",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--aadc75e1-946a-5bc7-a6ba-a04828a0de2d",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious IPV4: 45[.]154[.]255[.]89",
+      "description": "Indicator associated with APT29. Role: Command & Control (C2) Server. Source context: ...i-telemetry.org Data Exfiltration Relay High IPv4 185.220.101.5 AD FS Token Extraction C2 High IPv4 45.154.255.89 Cobalt Strike Team Server High URL https://auth-azure-sync.com/oauth/token/v2 Malicious Token Endpo...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[ipv4-addr:value = '45.154.255.89']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--828200cc-c3e3-5c9c-8444-82867c359f55",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--aadc75e1-946a-5bc7-a6ba-a04828a0de2d",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--73e5c0df-1e77-53eb-bdb4-f88eb6a36a63",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--aadc75e1-946a-5bc7-a6ba-a04828a0de2d",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--acc272ac-ba9c-5f09-a094-6d3f3756e35c",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious DOMAIN: auth-azure-sync[.]com",
+      "description": "Indicator associated with APT29. Role: Command & Control (C2) Server. Source context: ...personnel. INDICATORS OF COMPROMISE (IoCs) Type Defanged Indicator Description Confidenc e Domain auth-azure-sync.com Fake Entra ID Login / Token C2 High Domain login-microsoftonline-verify.net Credential Harvesting E...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[domain-name:value = 'auth-azure-sync.com']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--d97e2632-0e77-5847-ad1b-df5379251a94",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--acc272ac-ba9c-5f09-a094-6d3f3756e35c",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f23128bb-b85a-5d8e-9e93-939a2f35d768",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--acc272ac-ba9c-5f09-a094-6d3f3756e35c",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--e2a5e4f7-c539-5738-9257-f841a9ca9b65",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious DOMAIN: login-microsoftonline-verify[.]net",
+      "description": "Indicator associated with APT29. Role: Command & Control (C2) Server. Source context: ...cator Description Confidenc e Domain auth-azure-sync.com Fake Entra ID Login / Token C2 High Domain login-microsoftonline-verify.net Credential Harvesting Endpoint High Domain graph-api-telemetry.org Data Exfiltration Relay High IPv...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[domain-name:value = 'login-microsoftonline-verify.net']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 60
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--4968618a-3fc1-5798-9837-29badbd3d122",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--e2a5e4f7-c539-5738-9257-f841a9ca9b65",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--270b09af-0176-52f2-a237-225b9dbcdaea",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--e2a5e4f7-c539-5738-9257-f841a9ca9b65",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--201ae315-b9ff-583b-b2c2-77e9177921ec",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious DOMAIN: graph-api-telemetry[.]org",
+      "description": "Indicator associated with APT29. Role: Command & Control (C2) Server. Source context: .../ Token C2 High Domain login-microsoftonline-verify.net Credential Harvesting Endpoint High Domain graph-api-telemetry.org Data Exfiltration Relay High IPv4 185.220.101.5 AD FS Token Extraction C2 High IPv4 45.154.255.89 C...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[domain-name:value = 'graph-api-telemetry.org']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 60
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--83cecd0f-403d-54ab-9806-f2e6ddc72932",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--201ae315-b9ff-583b-b2c2-77e9177921ec",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--88d1e9b8-55e2-5cb9-a4c0-fb4f04fb957f",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--201ae315-b9ff-583b-b2c2-77e9177921ec",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--2115e9a6-60b1-554e-a7e2-d00fc6437f01",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious DOMAIN: embassy-support-desk[.]org",
+      "description": "Indicator associated with APT29. Role: Phishing / Credential Harvesting. Source context: ...ote Code Execution Critical CVE CVE-2024-21413 Microsoft Outlook NTLM Leak RCE Critical Email admin@embassy-support-desk.org Spear-phishing Lure Sender High CYBERSECURITY ADVISORY | THREAT INTELLIGENCE OPERATIONS TLP:CLEAR F...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[domain-name:value = 'embassy-support-desk.org']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 60
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--63cd4fb0-ff11-5c52-b4d5-82dc9c822da8",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--2115e9a6-60b1-554e-a7e2-d00fc6437f01",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--161cc95f-28e9-5a1c-9e72-e560d62e8980",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--2115e9a6-60b1-554e-a7e2-d00fc6437f01",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--fce36182-7e9c-54dd-8c1b-816a23bb16d8",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious SHA1: a3c1031d77a83d47a4697ff3f81e3a2c416805bb",
+      "description": "Indicator associated with APT29. Role: Payload Delivery / Dropper. Source context: ...gh URL http://login-microsoftonline-verify.net/payload/l oader.bin Stage-2 Dropper URL High SHA-256 a3c1031d77a83d47a4697ff3f81e3a2c416805bb 2f61e8ec5d91361b78292851 MagicWeb AD FS DLL Implant High SHA-256 d54f5905186ff946d8c8e88e895744883b...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[file:hashes.'SHA-1' = 'a3c1031d77a83d47a4697ff3f81e3a2c416805bb']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--72030ec5-8381-5fdf-833e-2a4db5a8cb2f",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--fce36182-7e9c-54dd-8c1b-816a23bb16d8",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--026679d7-f548-5648-a0c6-34cbb72dc27b",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--fce36182-7e9c-54dd-8c1b-816a23bb16d8",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--223c586b-4088-599e-ad4d-17a4147de8ed",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious SHA1: d54f5905186ff946d8c8e88e895744883bb379b3",
+      "description": "Indicator associated with APT29. Role: Payload Delivery / Dropper. Source context: ...1d77a83d47a4697ff3f81e3a2c416805bb 2f61e8ec5d91361b78292851 MagicWeb AD FS DLL Implant High SHA-256 d54f5905186ff946d8c8e88e895744883bb379b3 29ebc0e9565e381b16d96570 FoggyWeb Loader Binary High Registry HKCU\\Software\\Microsoft\\Windows\\Curre...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[file:hashes.'SHA-1' = 'd54f5905186ff946d8c8e88e895744883bb379b3']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--92c53b39-9734-5a67-9f4d-69054cb90fe4",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--223c586b-4088-599e-ad4d-17a4147de8ed",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--192f0eaf-8e12-55ca-a0b1-ac8b9127436d",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--223c586b-4088-599e-ad4d-17a4147de8ed",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--a51100e3-8c26-5897-a3dd-e6b539188e3b",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious REGISTRY: HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\EdgeUpdater",
+      "description": "Indicator associated with APT29. Role: Persistence / Execution Key. Source context: ...rkstations, APT29 configured persistence via scheduled tasks and the following registry run keys: \u007f HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\EdgeUpdater The actors also weaponized CVE-2023-38831 (WinRAR code execution vulnerability) and CVE-2024-21413...",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "[windows-registry-key:key = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\EdgeUpdater']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e612b50c-3d7c-5f93-a69e-dbc3c1038444",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--a51100e3-8c26-5897-a3dd-e6b539188e3b",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a83966ba-5847-58d8-b33d-4048b27dd6ea",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--a51100e3-8c26-5897-a3dd-e6b539188e3b",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--31be9efe-96f4-5ba4-95e7-06f7e42e987a",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious REGISTRY: HKCU\\Software\\Microsoft\\Windows\\CurrentVersi",
+      "description": "Indicator associated with APT29. Role: Persistence / Execution Key. Source context: ...f5905186ff946d8c8e88e895744883bb379b3 29ebc0e9565e381b16d96570 FoggyWeb Loader Binary High Registry HKCU\\Software\\Microsoft\\Windows\\CurrentVersi on\\Run\\EdgeUpdater Persistence Key for Stage 1 High CVE CVE-2023-38831 WinRAR Remote Code Execution...",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "[windows-registry-key:key = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersi']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--666aed96-9005-5be3-995c-1705aa16b94e",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--31be9efe-96f4-5ba4-95e7-06f7e42e987a",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a3c02c4c-108e-526c-a8ba-5df2597ed8df",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--31be9efe-96f4-5ba4-95e7-06f7e42e987a",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--29d45ae7-beb9-5ffb-9380-6b07b42439a0",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "name": "Malicious EMAIL: admin[@]embassy-support-desk[.]org",
+      "description": "Indicator associated with APT29. Role: Spear-phishing / Lure Sender. Source context: ...AR Remote Code Execution Critical CVE CVE-2024-21413 Microsoft Outlook NTLM Leak RCE Critical Email admin@embassy-support-desk.org Spear-phishing Lure Sender High CYBERSECURITY ADVISORY | THREAT INTELLIGENCE OPERATIONS TLP:CLEAR F...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[email-addr:value = 'admin@embassy-support-desk.org']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T06:29:32.702Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--82cb0905-7d89-5e98-9508-6ea4992684e1",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--29d45ae7-beb9-5ffb-9380-6b07b42439a0",
+      "target_ref": "threat-actor--bbaefd0a-4582-5f4d-9695-ada28763802f"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--32c494b2-48f4-5e48-b8f0-3ca301d43268",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T06:29:32.702Z",
+      "modified": "2026-09-05T06:29:32.702Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--29d45ae7-beb9-5ffb-9380-6b07b42439a0",
+      "target_ref": "malware--fb825d51-8dff-5436-b7d9-c0106268601b"
+    }
+  ]
+}

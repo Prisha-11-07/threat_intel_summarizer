@@ -1,0 +1,12 @@
+# Palo Alto Networks PAN-OS Configuration Commands
+# Threat Campaign: APT29
+# Apply in configure mode
+
+configure
+set address IOC_IP_185_220_101_5 ip-netmask 185.220.101.5/32 description "Threat Intel: APT29"
+set address IOC_IP_45_154_255_89 ip-netmask 45.154.255.89/32 description "Threat Intel: APT29"
+set address-group AG_THREAT_INTEL_APT29 static [ IOC_IP_185_220_101_5 IOC_IP_45_154_255_89 ]
+set profiles custom-url-category URL_BLOCK_APT29 list [ "auth-azure-sync.com" "login-microsoftonline-verify.net" "graph-api-telemetry.org" "embassy-support-desk.org" "https://auth-azure-sync.com/oauth/token/v2" "http://login-microsoftonline-verify.net/payload/l" ]
+set rulebase security rules BLOCK_APT29_EGRESS from trust to untrust source any destination [ AG_THREAT_INTEL_APT29 ] service any application any action drop log-end yes
+commit
+exit

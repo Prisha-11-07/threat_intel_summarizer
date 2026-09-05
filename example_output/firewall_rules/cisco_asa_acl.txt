@@ -1,0 +1,12 @@
+! Cisco ASA / Firepower CLI Ingestion
+! Threat Campaign: APT29
+
+object-group network OG_BLOCK_APT29
+ network-object host 185.220.101.5
+ network-object host 45.154.255.89
+exit
+
+! Apply Deny ACE to Perimeter Access List
+access-list OUTSIDE_IN line 1 extended deny ip object-group OG_BLOCK_APT29 any log interval 300
+access-list OUTSIDE_IN line 2 extended deny ip any object-group OG_BLOCK_APT29 log interval 300
+access-list INSIDE_OUT line 1 extended deny ip any object-group OG_BLOCK_APT29 log interval 300

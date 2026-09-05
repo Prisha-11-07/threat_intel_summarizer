@@ -1,0 +1,53 @@
+# Fortinet FortiGate FortiOS Configuration
+# Threat Actor: APT29
+
+config firewall address
+  edit "IOC_185_220_101_5"
+    set subnet 185.220.101.5 255.255.255.255
+    set comment "Threat Intel - APT29"
+  next
+  edit "IOC_45_154_255_89"
+    set subnet 45.154.255.89 255.255.255.255
+    set comment "Threat Intel - APT29"
+  next
+  edit "IOC_FQDN_auth-azure-sync_com"
+    set type fqdn
+    set fqdn "auth-azure-sync.com"
+    set comment "Threat Intel - APT29"
+  next
+  edit "IOC_FQDN_login-microsoftonline-ve"
+    set type fqdn
+    set fqdn "login-microsoftonline-verify.net"
+    set comment "Threat Intel - APT29"
+  next
+  edit "IOC_FQDN_graph-api-telemetry_org"
+    set type fqdn
+    set fqdn "graph-api-telemetry.org"
+    set comment "Threat Intel - APT29"
+  next
+  edit "IOC_FQDN_embassy-support-desk_org"
+    set type fqdn
+    set fqdn "embassy-support-desk.org"
+    set comment "Threat Intel - APT29"
+  next
+end
+
+config firewall addrgrp
+  edit "GRP_BLOCK_APT29"
+    set member "IOC_185_220_101_5" "IOC_45_154_255_89" "IOC_FQDN_auth-azure-sync_com" "IOC_FQDN_login-microsoftonline-ve" "IOC_FQDN_graph-api-telemetry_org" "IOC_FQDN_embassy-support-desk_org"
+  next
+end
+
+config firewall policy
+  edit 0
+    set name "BLOCK_APT29"
+    set srcintf "any"
+    set dstintf "any"
+    set srcaddr "all"
+    set dstaddr "GRP_BLOCK_APT29"
+    set action deny
+    set schedule "always"
+    set service "ALL"
+    set logtraffic all
+  next
+end

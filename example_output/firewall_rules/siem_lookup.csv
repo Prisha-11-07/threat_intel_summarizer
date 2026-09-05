@@ -1,0 +1,40 @@
+indicator,type,defanged,threat_actor,role,confidence,action
+"MANDIANT",entity,"MANDIANT","APT29","NER Entity (ORG)",Medium,BLOCK
+"Cloud Token",entity,"Cloud Token","APT29","NER Entity (PERSON)",Medium,BLOCK
+"TLP",entity,"TLP","APT29","NER Entity (ORG)",Medium,BLOCK
+"Midnight Blizzard",entity,"Midnight Blizzard","APT29","NER Entity (PERSON)",Medium,BLOCK
+"NOBELIUM",entity,"NOBELIUM","APT29","NER Entity (PERSON)",Medium,BLOCK
+"the Russian Foreign Intelligence Service",entity,"the Russian Foreign Intelligence Service","APT29","NER Entity (ORG)",Medium,BLOCK
+"Microsoft 365",entity,"Microsoft 365","APT29","NER Entity (ORG)",Medium,BLOCK
+"Entra ID",entity,"Entra ID","APT29","NER Entity (ORG)",Medium,BLOCK
+"CYBERSECURITY",entity,"CYBERSECURITY","APT29","NER Entity (ORG)",Medium,BLOCK
+"https://auth-azure-sync.com/oauth/token/v2",url,"hxxps://auth-azure-sync[.]com/oauth/token/v2","APT29","Command & Control (C2) Server",High,BLOCK
+"http://login-microsoftonline-verify.net/payload/l",url,"hxxp://login-microsoftonline-verify[.]net/payload/l","APT29","Payload Delivery / Dropper",Medium,BLOCK
+"185.220.101.5",ipv4,"185[.]220[.]101[.]5","APT29","Command & Control (C2) Server",Medium,BLOCK
+"45.154.255.89",ipv4,"45[.]154[.]255[.]89","APT29","Command & Control (C2) Server",High,BLOCK
+"auth-azure-sync.com",domain,"auth-azure-sync[.]com","APT29","Command & Control (C2) Server",High,BLOCK
+"login-microsoftonline-verify.net",domain,"login-microsoftonline-verify[.]net","APT29","Command & Control (C2) Server",Medium,BLOCK
+"graph-api-telemetry.org",domain,"graph-api-telemetry[.]org","APT29","Command & Control (C2) Server",Medium,BLOCK
+"embassy-support-desk.org",domain,"embassy-support-desk[.]org","APT29","Phishing / Credential Harvesting",Medium,BLOCK
+"a3c1031d77a83d47a4697ff3f81e3a2c416805bb",sha1,"a3c1031d77a83d47a4697ff3f81e3a2c416805bb","APT29","Payload Delivery / Dropper",High,BLOCK
+"d54f5905186ff946d8c8e88e895744883bb379b3",sha1,"d54f5905186ff946d8c8e88e895744883bb379b3","APT29","Payload Delivery / Dropper",High,BLOCK
+"HKCU\Software\Microsoft\Windows\CurrentVersion\Run\EdgeUpdater",registry,"HKCU\Software\Microsoft\Windows\CurrentVersion\Run\EdgeUpdater","APT29","Persistence / Execution Key",High,BLOCK
+"HKCU\Software\Microsoft\Windows\CurrentVersi",registry,"HKCU\Software\Microsoft\Windows\CurrentVersi","APT29","Persistence / Execution Key",High,BLOCK
+"CVE-2023-38831",cve,"CVE-2023-38831","APT29","Exploited Vulnerability",High,BLOCK
+"CVE-2024-21413",cve,"CVE-2024-21413","APT29","Exploited Vulnerability",High,BLOCK
+"admin@embassy-support-desk.org",email,"admin[@]embassy-support-desk[.]org","APT29","Spear-phishing / Lure Sender",High,BLOCK
+"MALWARE IMPLANTS & PERSISTENCE MECHANISMS",entity,"MALWARE IMPLANTS & PERSISTENCE MECHANISMS","APT29","NER Entity (ORG)",Medium,BLOCK
+"FoggyWeb",entity,"FoggyWeb","APT29","NER Entity (ORG)",Medium,BLOCK
+"Active Directory Federation Services",entity,"Active Directory Federation Services","APT29","NER Entity (ORG)",Medium,BLOCK
+"Windows",entity,"Windows","APT29","NER Entity (NORP)",Medium,BLOCK
+"CVE-2023-38831",entity,"CVE-2023-38831","APT29","NER Entity (ORG)",Medium,BLOCK
+"Microsoft",entity,"Microsoft","APT29","NER Entity (ORG)",Medium,BLOCK
+"Cobalt Strike",entity,"Cobalt Strike","APT29","NER Entity (PERSON)",Medium,BLOCK
+"Credential Harvesting Endpoint",entity,"Credential Harvesting Endpoint","APT29","NER Entity (ORG)",Medium,BLOCK
+"Data Exfiltration",entity,"Data Exfiltration","APT29","NER Entity (ORG)",Medium,BLOCK
+"https://auth-azure-sync.com/oauth/token/v2",entity,"https://auth-azure-sync.com/oauth/token/v2","APT29","NER Entity (GPE)",Medium,BLOCK
+"Malicious Token Endpoint",entity,"Malicious Token Endpoint","APT29","NER Entity (ORG)",Medium,BLOCK
+"Persistence Key",entity,"Persistence Key","APT29","NER Entity (PERSON)",Medium,BLOCK
+"Microsoft Outlook",entity,"Microsoft Outlook","APT29","NER Entity (ORG)",Medium,BLOCK
+"NTLM Leak",entity,"NTLM Leak","APT29","NER Entity (ORG)",Medium,BLOCK
+"Lure Sender",entity,"Lure Sender","APT29","NER Entity (PERSON)",Medium,BLOCK

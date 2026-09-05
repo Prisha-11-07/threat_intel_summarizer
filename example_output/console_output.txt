@@ -1,0 +1,88 @@
+/mnt/workstation/learning/aiml/cia3/threat_intel_summarizer/core/analyzer.py:21: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+[*] Reading and sanitizing PDF document: samples/reports/Mandiant_APT29_Cloud_Token_Theft_and_Persistence.pdf
+[*] Extracting indicators across 2 page(s)...
+[*] Synthesizing adversary methodology, Kill Chain, and MITRE mapping...
+[*] Building OASIS STIX 2.1 bundle...
+[*] Synthesizing firewall configurations for: APT29...
+
+============================================================================
+ CYBERSENTINEL // SOC THREAT INTELLIGENCE ANALYSIS REPORT
+============================================================================
+ Source Document:   (anonymous)
+ Reporting Vendor:  Mandiant / Google Cloud | TLP: TLP:CLEAR
+ Total Pages:       2
+----------------------------------------------------------------------------
+ Threat Actor:      APT29 (Russian Federation (SVR))
+ Aliases:           Cozy Bear, Midnight Blizzard, NOBELIUM, The Dukes
+ Motivation:        Strategic Intelligence / Foreign Policy Espionage
+ SOC Severity:      CRITICAL (Risk Score: 100/100)
+ Targeted Sectors:  Government & Public Sector
+ Malware / Tools:   Cobalt Strike
+----------------------------------------------------------------------------
+ Total IoCs:        39 indicators extracted & verified
+ Breakdown:         ENTITY: 24 | URL: 2 | IPV4: 2 | DOMAIN: 4 | SHA1: 2 | REGISTRY: 2 | CVE: 2 | EMAIL: 1
+
+[+] EXECUTIVE BRIEFING:
+    **CISO Briefing: APT29 Cloud Token Theft and Deep Persistence**
+
+**Summary:**
+
+Mandiant has identified an unprecedented espionage campaign by APT29, a Russian Foreign Intelligence Service (SVR) affiliated group. The attackers targeted Microsoft 365 and Entra ID cloud tenants, compromising non-production legacy testing accounts to achieve persistent access to diplomatic and defense communications.
+
+**Attack Methodology:**
+
+1. Compromised non-production legacy testing accounts lacking multi-factor authentication.
+2. Gained illicit application permissions and minted custom OAuth bearer tokens for silent access.
+3. Deployed specialized backdoor utilities (MagicWeb and FoggyWeb) to subvert Active Directory Federation Services (AD FS) and forge authentication SAML tokens.
+4. Configured persistence via scheduled tasks and registry run keys on corporate Windows workstations.
+
+**Tactics:**
+
+1. Spear-phishing lure via email (admin[@]embassy-support-desk[.]org).
+2. Exploited vulnerabilities:
+	* CVE-2023-38831 (WinRAR code execution vulnerability).
+	* CVE-2024-21413 (Microsoft Outlook RCE).
+3. Delivered Cobalt Strike and custom loader payloads to foreign ministry personnel.
+
+**Impact:**
+
+1. Unprecedented espionage campaign targeting diplomatic and defense communications.
+2. Deep persistence mechanisms allowing attackers to maintain access over an extended period.
+3. Potential data exfiltration via relay domain (graph-api-telemetry[.]org).
+
+**Recommendations:**
+
+1. Implement multi-factor authentication for all accounts, including non-production legacy testing accounts.
+2. Regularly review and update application permissions and OAuth bearer tokens.
+3. Deploy advanced threat detection and response capabilities to identify and mitigate potential attacks.
+4. Conduct regular vulnerability assessments and patching to prevent exploitation of known vulnerabilities.
+
+[+] MITRE ATT&CK TECHNIQUES DETECTED:
+    - T1566      Phishing                         [Initial Access]
+    - T1190      Exploit Public-Facing Application [Initial Access]
+    - T1078      Valid Accounts                   [Initial Access / Persistence]
+    - T1547.001  Registry Run Keys / Startup Folder [Persistence]
+    - T1053      Scheduled Task/Job               [Persistence / Execution]
+
+[+] SAMPLE INDICATORS OF COMPROMISE (DEFANGED):
+    - ENTITY     MANDIANT                             (NER Entity (ORG))
+    - ENTITY     Cloud Token                          (NER Entity (PERSON))
+    - ENTITY     TLP                                  (NER Entity (ORG))
+    - ENTITY     Midnight Blizzard                    (NER Entity (PERSON))
+    - ENTITY     NOBELIUM                             (NER Entity (PERSON))
+    - ENTITY     the Russian Foreign Intelligence Service (NER Entity (ORG))
+    - ENTITY     Microsoft 365                        (NER Entity (ORG))
+    - ENTITY     Entra ID                             (NER Entity (ORG))
+      ... and 31 more indicators.
+============================================================================
+
+[OK] Exported OASIS STIX 2.1 JSON bundle -> /mnt/workstation/learning/aiml/cia3/threat_intel_summarizer/example_output/stix_bundle.json
+[OK] Exported 8 firewall/SIEM configurations -> /mnt/workstation/learning/aiml/cia3/threat_intel_summarizer/example_output/firewall_rules

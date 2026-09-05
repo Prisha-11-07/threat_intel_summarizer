@@ -1,0 +1,14 @@
+# ========================================================
+# Suricata / Snort 3 Threat Ingestion Rules
+# Attribution: APT29
+# Generated via Automated Threat Intelligence Engine
+# ========================================================
+
+drop ip any any <> 185.220.101.5 any (msg:"SOC-BLOCK APT29 - Outbound/Inbound C2 Communication [185.220.101.5]"; classtype:trojan-activity; sid:3001000; rev:1;)
+drop ip any any <> 45.154.255.89 any (msg:"SOC-BLOCK APT29 - Outbound/Inbound C2 Communication [45.154.255.89]"; classtype:trojan-activity; sid:3001001; rev:1;)
+drop dns any any -> any 53 (msg:"SOC-BLOCK APT29 - DNS Query to Malicious Domain [auth-azure-sync.com]"; dns.query; content:"auth-azure-sync.com"; nocase; endswith; classtype:bad-unknown; sid:3001002; rev:1;)
+drop dns any any -> any 53 (msg:"SOC-BLOCK APT29 - DNS Query to Malicious Domain [login-microsoftonline-verify.net]"; dns.query; content:"login-microsoftonline-verify.net"; nocase; endswith; classtype:bad-unknown; sid:3001003; rev:1;)
+drop dns any any -> any 53 (msg:"SOC-BLOCK APT29 - DNS Query to Malicious Domain [graph-api-telemetry.org]"; dns.query; content:"graph-api-telemetry.org"; nocase; endswith; classtype:bad-unknown; sid:3001004; rev:1;)
+drop dns any any -> any 53 (msg:"SOC-BLOCK APT29 - DNS Query to Malicious Domain [embassy-support-desk.org]"; dns.query; content:"embassy-support-desk.org"; nocase; endswith; classtype:bad-unknown; sid:3001005; rev:1;)
+drop http any any -> any any (msg:"SOC-BLOCK APT29 - Malicious HTTP Request [https://auth-azure-sync.com/oauth/token/...]"; http.uri; content:"https://auth-azure-sync.com/oa"; nocase; classtype:web-application-attack; sid:3001006; rev:1;)
+drop http any any -> any any (msg:"SOC-BLOCK APT29 - Malicious HTTP Request [http://login-microsoftonline-verify.net/...]"; http.uri; content:"http://login-microsoftonline-v"; nocase; classtype:web-application-attack; sid:3001007; rev:1;)

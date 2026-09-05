@@ -1,0 +1,3 @@
+hash,hash_type,threat_actor,policy_action,comment
+a3c1031d77a83d47a4697ff3f81e3a2c416805bb,SHA1,"APT29",ALWAYS_BLOCK,"Threat Intel Ingestion: APT29"
+d54f5905186ff946d8c8e88e895744883bb379b3,SHA1,"APT29",ALWAYS_BLOCK,"Threat Intel Ingestion: APT29"

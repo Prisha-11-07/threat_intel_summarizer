@@ -1,0 +1,10 @@
+#fields	indicator	indicator_type	meta.source	meta.desc	meta.confidence
+https://auth-azure-sync.com/oauth/token/v2	Intel::URL	ThreatIntelApp	APT29_Command_&_Control_(C2)_Server	High
+http://login-microsoftonline-verify.net/payload/l	Intel::URL	ThreatIntelApp	APT29_Payload_Delivery_/_Dropper	Medium
+185.220.101.5	Intel::ADDR	ThreatIntelApp	APT29_Command_&_Control_(C2)_Server	Medium
+45.154.255.89	Intel::ADDR	ThreatIntelApp	APT29_Command_&_Control_(C2)_Server	High
+auth-azure-sync.com	Intel::DOMAIN	ThreatIntelApp	APT29_Command_&_Control_(C2)_Server	High
+login-microsoftonline-verify.net	Intel::DOMAIN	ThreatIntelApp	APT29_Command_&_Control_(C2)_Server	Medium
+graph-api-telemetry.org	Intel::DOMAIN	ThreatIntelApp	APT29_Command_&_Control_(C2)_Server	Medium
+embassy-support-desk.org	Intel::DOMAIN	ThreatIntelApp	APT29_Phishing_/_Credential_Harvesting	Medium
+admin@embassy-support-desk.org	Intel::EMAIL	ThreatIntelApp	APT29_Spear-phishing_/_Lure_Sender	High
