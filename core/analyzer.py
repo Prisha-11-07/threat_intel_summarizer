@@ -12,6 +12,12 @@ from typing import Dict, Any, List, Optional
 import urllib.request
 
 try:
+    from config import NVIDIA_API_KEY
+    os.environ["NVIDIA_API_KEY"] = NVIDIA_API_KEY
+except ImportError:
+    pass
+
+try:
     import google.generativeai as genai
 except ImportError:
     genai = None
