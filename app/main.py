@@ -154,7 +154,7 @@ async def analyze_sample(sample_id: str):
     file_path = os.path.join(SAMPLES_DIR, filename)
     if not os.path.exists(file_path):
         # Auto-generate if missing
-        from threat_intel_summarizer.samples.generate_samples import generate_all_samples
+        from samples.generate_samples import generate_all_samples
         generate_all_samples(SAMPLES_DIR)
 
     if not os.path.exists(file_path):

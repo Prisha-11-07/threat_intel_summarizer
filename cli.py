@@ -1,6 +1,12 @@
 """
-Headless Command-Line Interface (CLI) for Threat Intelligence Automation.
-Enables headless SOC batch processing, SOAR integration, and automated CI/CD runs.
+Headless Command-Line Interface (CLI) for batch threat intelligence processing.
+
+Supports direct PDF ingestion, STIX 2.1 export, and multi-vendor firewall rule
+generation without requiring the web server. Designed for SOC analysts running
+automated pipelines, SOAR integrations, or CI/CD security gates.
+
+Usage:
+    python cli.py <report.pdf> [--stix output.json] [--firewall-dir ./rules]
 """
 
 import os
@@ -9,11 +15,10 @@ import json
 import argparse
 from typing import List, Dict, Any
 
-# Ensure parent directory is in path
+# Ensure the project root is resolvable regardless of where the script is invoked from
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_DIR = os.path.dirname(BASE_DIR)
-if PARENT_DIR not in sys.path:
-    sys.path.insert(0, PARENT_DIR)
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 
 from core.pdf_parser import ThreatReportParser
 from core.extractor import IoCExtractor
