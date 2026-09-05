@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSentinel // Automated Threat Intelligence Engine</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#090d16',
+                            card: '#0f172a',
+                            border: '#1e293b',
+                            cyan: '#06b6d4',
+                            emerald: '#10b981',
+                            amber: '#f59e0b',
+                            red: '#ef4444',
+                            purple: '#8b5cf6'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="bg-cyber-bg text-slate-100 min-h-screen font-sans antialiased selection:bg-cyan-500 selection:text-black">
+
+    <!-- Top Navigation -->
+    <header class="border-b border-cyber-border bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-cyan-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                <i class="fa-solid fa-shield-virus text-black text-xl"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-lg tracking-wider text-white">CYBER<span class="text-cyan-400">SENTINEL</span></span>
+                    <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">SOC Threat Intel</span>
+                </div>
+                <p class="text-xs text-slate-400">Automated Multi-Page PDF Summarizer & STIX 2.1 Defense Ingestion</p>
+            </div>
+        </div>
+
+        <!-- Compliance Badges -->
+        <div class="hidden lg:flex items-center gap-2 text-xs font-mono">
+            <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                STIX 2.1 OASIS
+            </span>
+            <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300">
+                TAXII 2.1 Ready
+            </span>
+            <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300">
+                MITRE ATT&CK v14
+            </span>
+            <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-cyan-400">
+                Firewall Synthesizer
+            </span>
+        </div>
+
+        <!-- Quick Sample Action Buttons -->
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 font-mono hidden sm:inline">Load Sample:</span>
+            <button onclick="loadSample('cisa-volt-typhoon')" class="sample-btn px-2.5 py-1.5 rounded text-xs font-mono bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500 transition text-slate-200 flex items-center gap-1.5">
+                <i class="fa-solid fa-bolt text-amber-400 text-xs"></i> CISA Volt Typhoon
+            </button>
+            <button onclick="loadSample('mandiant-apt29')" class="sample-btn px-2.5 py-1.5 rounded text-xs font-mono bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500 transition text-slate-200 flex items-center gap-1.5">
+                <i class="fa-solid fa-cloud text-cyan-400 text-xs"></i> Mandiant APT29
+            </button>
+            <button onclick="loadSample('crowdstrike-lazarus')" class="sample-btn px-2.5 py-1.5 rounded text-xs font-mono bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500 transition text-slate-200 flex items-center gap-1.5">
+                <i class="fa-solid fa-coins text-red-400 text-xs"></i> CrowdStrike Lazarus
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+
+        <!-- Ingestion / Upload Section -->
+        <section id="uploadSection" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 relative overflow-hidden shadow-2xl">
+            <div class="absolute -top-24 -right-24 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-800/80 text-cyan-300 text-xs font-mono">
+                        <i class="fa-solid fa-microchip"></i>
+                        <span>Autonomous Threat Extraction Pipeline</span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                        Transform Dense Threat Reports into <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">Immediate Defense Configurations</span>
+                    </h1>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Upload multi-page PDF advisories from CISA, Mandiant, CrowdStrike, or Unit 42. CyberSentinel decodes defanged network indicators, models adversary attack methodologies with MITRE ATT&CK, and exports OASIS STIX 2.1 bundles with plug-and-play firewall rules.
+                    </p>
+                    <div class="flex flex-wrap gap-4 text-xs font-mono text-slate-400 pt-1">
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-check-circle text-emerald-400"></i> Multi-page PDF Parsing</span>
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-check-circle text-emerald-400"></i> Auto Refanging/Defanging</span>
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-check-circle text-emerald-400"></i> STIX 2.1 & TAXII Ready</span>
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-check-circle text-emerald-400"></i> Multi-Vendor Firewall Rules</span>
+                    </div>
+                </div>
+
+                <!-- Dropzone -->
+                <div class="lg:col-span-5">
+                    <div id="dropzone" class="border-2 border-dashed border-slate-700 hover:border-cyan-400 bg-slate-950/60 hover:bg-slate-900/60 rounded-xl p-6 text-center cursor-pointer transition-all duration-200 group">
+                        <input type="file" id="fileInput" accept=".pdf" class="hidden">
+                        <div class="w-14 h-14 mx-auto rounded-full bg-slate-900 flex items-center justify-center text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-950/50 transition">
+                            <i class="fa-solid fa-file-pdf text-2xl"></i>
+                        </div>
+                        <h3 class="mt-3 text-sm font-semibold text-white">Drag & Drop Threat Intel PDF</h3>
+                        <p class="text-xs text-slate-400 mt-1">Multi-page vendor advisories up to 50MB</p>
+                        <button type="button" onclick="document.getElementById('fileInput').click()" class="mt-4 px-4 py-2 text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition shadow-md shadow-cyan-600/30">
+                            Browse Local PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Progress Spinner (Hidden by default) -->
+            <div id="loadingIndicator" class="hidden mt-6 pt-6 border-t border-slate-800 space-y-4">
+                <div class="flex items-center justify-between text-xs font-mono">
+                    <span id="loadingStepText" class="text-cyan-400 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Parsing multi-page PDF structure and extracting textual layers...
+                    </span>
+                    <span id="loadingPercent" class="text-slate-400">35%</span>
+                </div>
+                <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                    <div id="progressBar" class="bg-gradient-to-r from-cyan-500 to-emerald-400 h-2 rounded-full transition-all duration-300" style="width: 35%"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Threat Intelligence Dashboard (Visible when report analyzed) -->
+        <div id="dashboardSection" class="space-y-8 hidden">
+
+            <!-- Top Metric Banner -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Threat Actor Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+                    <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-secret text-cyan-400"></i> Threat Actor
+                    </span>
+                    <div class="mt-2">
+                        <h3 id="actorName" class="text-lg font-bold text-white">Volt Typhoon</h3>
+                        <p id="actorOrigin" class="text-xs text-slate-400 truncate">PRC (State-Sponsored)</p>
+                    </div>
+                    <div id="actorAliases" class="mt-2 flex flex-wrap gap-1"></div>
+                </div>
+
+                <!-- Severity Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+                    <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-400"></i> SOC Severity
+                    </span>
+                    <div class="mt-2 flex items-center gap-3">
+                        <span id="severityBadge" class="px-3 py-1 rounded-md text-xs font-bold font-mono uppercase tracking-wider bg-red-950/80 text-red-400 border border-red-800 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                            CRITICAL
+                        </span>
+                        <div class="text-right flex-1">
+                            <span id="riskScore" class="text-xl font-mono font-bold text-white">92</span>
+                            <span class="text-[10px] text-slate-400 block">/ 100 Risk</span>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-400 truncate">
+                        P1 Immediate SOC Triage
+                    </div>
+                </div>
+
+                <!-- Indicators Extracted Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+                    <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-fingerprint text-emerald-400"></i> Extracted IoCs
+                    </span>
+                    <div class="mt-2">
+                        <h3 id="totalIoCs" class="text-2xl font-mono font-bold text-emerald-400">14</h3>
+                        <p class="text-xs text-slate-400">Validated & Refanged</p>
+                    </div>
+                    <div id="iocMiniStats" class="mt-2 text-[11px] font-mono text-slate-400 flex gap-2">
+                        <span>IPs: <b id="statIps" class="text-white">4</b></span>
+                        <span>Domains: <b id="statDomains" class="text-white">2</b></span>
+                        <span>Hashes: <b id="statHashes" class="text-white">3</b></span>
+                    </div>
+                </div>
+
+                <!-- Report Provenance Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+                    <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-contract text-purple-400"></i> Source Advisory
+                    </span>
+                    <div class="mt-2">
+                        <h3 id="vendorName" class="text-sm font-bold text-white truncate">CISA / FBI / NSA</h3>
+                        <p id="totalPages" class="text-xs text-slate-400">3 Pages Analyzed</p>
+                    </div>
+                    <div class="mt-2">
+                        <span id="tlpBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">TLP:CLEAR</span>
+                    </div>
+                </div>
+
+                <!-- Export Action Card -->
+                <div class="bg-gradient-to-br from-cyan-950/40 to-slate-900 border border-cyan-900/60 rounded-xl p-4 flex flex-col justify-between">
+                    <span class="text-xs font-mono text-cyan-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i> 1-Click Exports
+                    </span>
+                    <div class="space-y-2 mt-2">
+                        <button onclick="downloadSTIX()" class="w-full py-1.5 px-3 rounded bg-cyan-600 hover:bg-cyan-500 text-white font-mono text-xs font-semibold flex items-center justify-center gap-1.5 shadow transition">
+                            <i class="fa-solid fa-code"></i> STIX 2.1 Bundle
+                        </button>
+                        <button onclick="scrollToSection('firewallSection')" class="w-full py-1.5 px-3 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                            <i class="fa-solid fa-shield-halved text-emerald-400"></i> Firewall Rules
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Executive Summary & Targeted Sectors -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Executive Summary -->
+                <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-bullhorn text-cyan-400"></i> SOC Executive Briefing
+                        </h2>
+                        <span class="text-xs font-mono text-slate-400">GenAI Summarized</span>
+                    </div>
+                    <p id="execSummaryText" class="text-sm text-slate-300 leading-relaxed">
+                        Loading executive briefing...
+                    </p>
+
+                    <!-- Tactical Recommendations -->
+                    <div class="pt-4 border-t border-slate-800 space-y-3">
+                        <h3 class="text-xs font-bold uppercase font-mono tracking-wider text-slate-400">Immediate Action Items</h3>
+                        <div id="tacticalList" class="space-y-2">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Targeted Sectors & Malware Families -->
+                <div class="lg:col-span-4 space-y-6">
+                    <!-- Targeted Sectors -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
+                        <h3 class="text-xs font-bold uppercase font-mono tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-crosshairs text-red-400"></i> Targeted Sectors
+                        </h3>
+                        <div id="sectorsList" class="flex flex-wrap gap-2">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Malware & Tooling -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
+                        <h3 class="text-xs font-bold uppercase font-mono tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-virus text-amber-400"></i> Malware & Tooling
+                        </h3>
+                        <div id="malwareList" class="flex flex-wrap gap-2">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attack Methodology & Cyber Kill Chain Pipeline -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-timeline text-cyan-400"></i> Attack Methodology // Cyber Kill Chain
+                        </h2>
+                        <p class="text-xs text-slate-400">Adversary operational progression mapped to extracted evidence</p>
+                    </div>
+                    <span class="text-xs font-mono text-cyan-400 bg-cyan-950/60 px-2.5 py-1 rounded border border-cyan-800/80">
+                        7 Stages Tracked
+                    </span>
+                </div>
+
+                <div id="killChainGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- MITRE ATT&CK Matrix Mapping -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-5">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-cubes-stacked text-emerald-400"></i> MITRE ATT&CK Matrix Mapping
+                        </h2>
+                        <p class="text-xs text-slate-400">Tactics, Techniques, and defensive mitigation countermeasures</p>
+                    </div>
+                    <div class="text-xs font-mono text-slate-400">
+                        Total Techniques: <span id="mitreCount" class="text-white font-bold">0</span>
+                    </div>
+                </div>
+
+                <div id="mitreGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Structured Indicators of Compromise (IoC) Explorer -->
+            <div id="iocSection" class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-5">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-table-list text-cyan-400"></i> Structured Indicators of Compromise (IoCs)
+                        </h2>
+                        <p class="text-xs text-slate-400">Verified entities extracted via NER and regex with contextual provenance</p>
+                    </div>
+
+                    <!-- Defanged vs Refanged Switch & Actions -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-xs font-mono">
+                            <span class="text-slate-400">View:</span>
+                            <button id="viewDefangedBtn" onclick="toggleDefanging(true)" class="px-2 py-0.5 rounded bg-cyan-900/60 text-cyan-300 font-bold">
+                                Defanged
+                            </button>
+                            <button id="viewRefangedBtn" onclick="toggleDefanging(false)" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">
+                                Refanged (Active)
+                            </button>
+                        </div>
+                        <button onclick="copyAllIoCs()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono font-semibold flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-copy"></i> Copy All
+                        </button>
+                        <button onclick="downloadIoCCSV()" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-mono font-semibold flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-file-csv"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Type Filters & Search -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="flex-1 relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                        <input type="text" id="iocSearchInput" oninput="filterIoCs()" placeholder="Search indicators, hashes, roles..." class="w-full pl-8 pr-4 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono">
+                    </div>
+                    <div id="iocTypeFilter" class="flex flex-wrap gap-1.5 text-xs font-mono">
+                        <button onclick="filterByType('all')" class="filter-btn active px-2.5 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">All</button>
+                        <button onclick="filterByType('ipv4')" class="filter-btn px-2.5 py-1 rounded bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">IPv4</button>
+                        <button onclick="filterByType('domain')" class="filter-btn px-2.5 py-1 rounded bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">Domains</button>
+                        <button onclick="filterByType('url')" class="filter-btn px-2.5 py-1 rounded bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">URLs</button>
+                        <button onclick="filterByType('sha256')" class="filter-btn px-2.5 py-1 rounded bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">Hashes</button>
+                        <button onclick="filterByType('registry')" class="filter-btn px-2.5 py-1 rounded bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">Registry</button>
+                        <button onclick="filterByType('cve')" class="filter-btn px-2.5 py-1 rounded bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">CVEs</button>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="overflow-x-auto border border-slate-800 rounded-lg">
+                    <table class="w-full text-left text-xs font-mono">
+                        <thead class="bg-slate-950/80 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4">Type</th>
+                                <th class="py-3 px-4">Indicator Value</th>
+                                <th class="py-3 px-4">Operational Role</th>
+                                <th class="py-3 px-4">Confidence</th>
+                                <th class="py-3 px-4">Page</th>
+                                <th class="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="iocTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- OASIS STIX 2.1 JSON Inspector -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-code-branch text-purple-400"></i> OASIS STIX 2.1 Bundle & TAXII Ingestion
+                        </h2>
+                        <p class="text-xs text-slate-400">Normalized JSON bundle compliant with OASIS STIX 2.1 Specification</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="copySTIX()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono font-semibold flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-copy"></i> Copy JSON
+                        </button>
+                        <button onclick="downloadSTIX()" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-semibold flex items-center gap-1.5 shadow transition">
+                            <i class="fa-solid fa-download"></i> Download STIX 2.1 JSON
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STIX Object Summary Badges -->
+                <div id="stixMetrics" class="flex flex-wrap gap-2 text-xs font-mono">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- JSON Code Viewer -->
+                <div class="relative">
+                    <pre id="stixJsonViewer" class="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-[11px] text-cyan-300/90 overflow-x-auto max-h-96 leading-relaxed"></pre>
+                </div>
+            </div>
+
+            <!-- Firewall & Defensive Countermeasures Studio -->
+            <div id="firewallSection" class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-emerald-400"></i> Firewall & Defensive Countermeasures Studio
+                        </h2>
+                        <p class="text-xs text-slate-400">Automatic conversion of IoCs into enterprise firewall, IDS/IPS, and SIEM configs</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="copyFirewallRule()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono font-semibold flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-copy"></i> Copy Config
+                        </button>
+                        <button onclick="downloadFirewallRule()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-semibold flex items-center gap-1.5 shadow transition">
+                            <i class="fa-solid fa-download"></i> Download Rule
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Firewall Tab Switcher -->
+                <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-3 font-mono text-xs">
+                    <button onclick="selectFirewallTab('suricata')" class="fw-tab active px-3 py-1.5 rounded-lg bg-cyan-950 text-cyan-400 border border-cyan-800">Suricata / Snort 3</button>
+                    <button onclick="selectFirewallTab('palo_alto')" class="fw-tab px-3 py-1.5 rounded-lg bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">Palo Alto (PAN-OS)</button>
+                    <button onclick="selectFirewallTab('fortigate')" class="fw-tab px-3 py-1.5 rounded-lg bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">Fortinet FortiGate</button>
+                    <button onclick="selectFirewallTab('cisco_asa')" class="fw-tab px-3 py-1.5 rounded-lg bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">Cisco ASA / FTD</button>
+                    <button onclick="selectFirewallTab('iptables')" class="fw-tab px-3 py-1.5 rounded-lg bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">Linux iptables</button>
+                    <button onclick="selectFirewallTab('zeek')" class="fw-tab px-3 py-1.5 rounded-lg bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">Zeek Intel</button>
+                    <button onclick="selectFirewallTab('siem_csv')" class="fw-tab px-3 py-1.5 rounded-lg bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">SIEM CSV Lookup</button>
+                    <button onclick="selectFirewallTab('edr_hashes')" class="fw-tab px-3 py-1.5 rounded-lg bg-slate-950 text-slate-400 border border-slate-800 hover:text-white">EDR Hashes Block</button>
+                </div>
+
+                <!-- Firewall Code Viewer -->
+                <div class="relative">
+                    <pre id="firewallCodeViewer" class="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-xs text-emerald-300/90 overflow-x-auto max-h-96 leading-relaxed"></pre>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500 font-mono">
+        <p>CyberSentinel Threat Intelligence Automation Engine // SOC Defense Transformation Platform</p>
+        <p class="mt-1">Standardized OASIS STIX 2.1 & TAXII 2.1 Ingestion</p>
+    </footer>
+
+    <!-- Toast Notification Element -->
+    <div id="toast" class="fixed bottom-6 right-6 px-4 py-2.5 rounded-lg bg-slate-900 border border-cyan-500 text-cyan-300 text-xs font-mono shadow-2xl transition-all duration-300 translate-y-20 opacity-0 z-50 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg">Action completed</span>
+    </div>
+
+    <!-- App Scripts -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

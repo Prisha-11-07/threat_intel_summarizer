@@ -1,0 +1,877 @@
+{
+  "type": "bundle",
+  "id": "bundle--477d1510-c758-46ae-9d74-c7d66f00d18b",
+  "objects": [
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "SOC Threat Intelligence Automation Platform",
+      "identity_class": "organization",
+      "sectors": [
+        "defense",
+        "technology"
+      ],
+      "contact_information": "soc-intel-feed@enterprise-defense.local"
+    },
+    {
+      "type": "threat-actor",
+      "spec_version": "2.1",
+      "id": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Volt Typhoon",
+      "aliases": [
+        "BRONZE SILHOUETTE",
+        "Vanguard Panda",
+        "Dev-0391"
+      ],
+      "threat_actor_types": [
+        "nation-state"
+      ],
+      "sophistication": "advanced",
+      "resource_level": "government",
+      "primary_motivation": "espionage",
+      "description": "Threat actor tracked as Volt Typhoon. Origin: People's Republic of China (State-sponsored). Tactics: Living-off-the-land (LotL), compromised SOHO routers, credential theft, stealthy persistence."
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Custom In-Memory Backdoor",
+      "is_family": true,
+      "malware_types": [
+        "backdoor",
+        "trojan"
+      ],
+      "description": "Malware family or tool 'Custom In-Memory Backdoor' leveraged during intrusion operations."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a9fd41c5-63c0-5c83-967f-1c0c6cdcb28a",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--9e3ec796-af4b-5a1e-9bdb-7af6eec390d3",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Living-off-the-Land Binaries (LOLBins)",
+      "is_family": true,
+      "malware_types": [
+        "backdoor",
+        "trojan"
+      ],
+      "description": "Malware family or tool 'Living-off-the-Land Binaries (LOLBins)' leveraged during intrusion operations."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--dd52894b-c635-5d8e-bd12-e1720140f0c1",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12",
+      "target_ref": "malware--9e3ec796-af4b-5a1e-9bdb-7af6eec390d3"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--94103aba-a5c0-57c1-a64e-1e096281dd60",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Exploit Public-Facing Application",
+      "description": "Exploiting security vulnerabilities or zero-days in internet-exposed edge appliances, VPNs, or web applications.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1190",
+          "url": "https://attack.mitre.org/techniques/T1190"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--49ffe53f-53ec-5156-90b6-80110d8062ab",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12",
+      "target_ref": "attack-pattern--94103aba-a5c0-57c1-a64e-1e096281dd60"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--a20cb8cd-9dd2-5f03-b5c6-406172a8cdba",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "PowerShell",
+      "description": "Abusing PowerShell scripts and cmdlets to download payloads, run obfuscated commands, or discover active directory.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1059.001",
+          "url": "https://attack.mitre.org/techniques/T1059/001"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--8532c75d-b8d4-54f6-ad06-59495181ffa7",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12",
+      "target_ref": "attack-pattern--a20cb8cd-9dd2-5f03-b5c6-406172a8cdba"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--ce3fe07a-7178-5597-8d42-72f57de83d48",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Registry Run Keys / Startup Folder",
+      "description": "Adding entries to Windows Registry Run keys or Startup folder for recurring payload execution upon user login.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1547.001",
+          "url": "https://attack.mitre.org/techniques/T1547/001"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0e4828b9-636f-58b8-b837-96f89ccdbbaf",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12",
+      "target_ref": "attack-pattern--ce3fe07a-7178-5597-8d42-72f57de83d48"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--0d3bdce1-10e1-58fe-ab5c-8fa649e24911",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Indicator Removal",
+      "description": "Clearing Windows Event Logs, deleting shadow copies, or wiping file artifacts using wevtutil.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1070",
+          "url": "https://attack.mitre.org/techniques/T1070"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--ce9043be-068e-5b1b-abfe-6f010209992d",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12",
+      "target_ref": "attack-pattern--0d3bdce1-10e1-58fe-ab5c-8fa649e24911"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--0475904c-646d-5257-856a-e8c1a73fc9e8",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Web Protocols (C2)",
+      "description": "Communicating with adversary infrastructure over standard HTTP/HTTPS channels to blend with normal traffic.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1071.001",
+          "url": "https://attack.mitre.org/techniques/T1071/001"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--12a48725-0d0e-5704-b66f-99eb3ab665aa",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12",
+      "target_ref": "attack-pattern--0475904c-646d-5257-856a-e8c1a73fc9e8"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--a4259a15-b11d-5de9-ad24-096c10b8d062",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Phishing",
+      "description": "Adversaries send spear-phishing messages with malicious attachments or links to gain initial access.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1566",
+          "url": "https://attack.mitre.org/techniques/T1566"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--317189b3-eaa0-5227-9685-eac5c0aaefd0",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "uses",
+      "source_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12",
+      "target_ref": "attack-pattern--a4259a15-b11d-5de9-ad24-096c10b8d062"
+    },
+    {
+      "type": "vulnerability",
+      "spec_version": "2.1",
+      "id": "vulnerability--52f96f13-ab9d-55ae-a7de-9719502a3a92",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "CVE-2023-46805",
+      "description": "Vulnerability CVE-2023-46805 exploited by Volt Typhoon for initial access.",
+      "external_references": [
+        {
+          "source_name": "cve",
+          "external_id": "CVE-2023-46805",
+          "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-46805"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6b15329f-7099-5385-ba35-52c89d887abb",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "targets",
+      "source_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12",
+      "target_ref": "vulnerability--52f96f13-ab9d-55ae-a7de-9719502a3a92"
+    },
+    {
+      "type": "vulnerability",
+      "spec_version": "2.1",
+      "id": "vulnerability--b8cb26b3-7e76-5dfe-8618-2e0f508b4da8",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "CVE-2024-21887",
+      "description": "Vulnerability CVE-2024-21887 exploited by Volt Typhoon for initial access.",
+      "external_references": [
+        {
+          "source_name": "cve",
+          "external_id": "CVE-2024-21887",
+          "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-21887"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c2e56311-4995-54ab-bf3f-a000f6b85736",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "targets",
+      "source_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12",
+      "target_ref": "vulnerability--b8cb26b3-7e76-5dfe-8618-2e0f508b4da8"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--d84c2dc6-f7e7-5fc4-ac7c-38d1fdd24f3c",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious REGISTRY: HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\VoltSvc",
+      "description": "Indicator associated with Volt Typhoon. Role: Persistence / Execution Key. Source context: ...ersary modifies Windows registry run keys and schedules proxy services under the following paths: \u007f HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\VoltSvc \u007f HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\PortProxy The actors routinely utilize netsh...",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "[windows-registry-key:key = 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\VoltSvc']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--da946552-f262-56f3-9db7-f671f0378ab8",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--d84c2dc6-f7e7-5fc4-ac7c-38d1fdd24f3c",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a6bddc6f-8410-5bf0-a0e3-15ecb714f040",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--d84c2dc6-f7e7-5fc4-ac7c-38d1fdd24f3c",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--87bcba6b-e9e8-5f34-b791-4f7639207b61",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious REGISTRY: HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\PortProxy",
+      "description": "Indicator associated with Volt Typhoon. Role: Persistence / Execution Key. Source context: ...services under the following paths: \u007f HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\VoltSvc \u007f HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\PortProxy The actors routinely utilize netsh interface portproxy commands to relay port traffic across segmen...",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "[windows-registry-key:key = 'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\PortProxy']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--71e616ba-8925-5b9f-aff4-39e86f3e8c31",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--87bcba6b-e9e8-5f34-b791-4f7639207b61",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a5fe1e09-54d3-59ce-bbe5-420ae1cfc8ed",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--87bcba6b-e9e8-5f34-b791-4f7639207b61",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--7c019b53-8d0a-568a-93bb-95773a85887e",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious REGISTRY: HKLM\\Software\\Microsoft\\Windows",
+      "description": "Indicator associated with Volt Typhoon. Role: Persistence / Execution Key. Source context: ...n scripts and staging commands Persistence T1547.001 Registry Run Keys / Startup Autostart entry in HKLM\\Software\\Microsoft\\Windows\\ CurrentVersion\\Run Defense Evasion T1070 Indicator Removal on Host Deletion of shadow copies and c...",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "[windows-registry-key:key = 'HKLM\\Software\\Microsoft\\Windows']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--419b2abb-50e7-59bc-8510-a57abc3f9b92",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--7c019b53-8d0a-568a-93bb-95773a85887e",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--2afe068f-de29-5178-9a25-90d3c97f940d",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--7c019b53-8d0a-568a-93bb-95773a85887e",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--59d30e9f-4ea4-586e-b316-037d1be24b5d",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious URL: hxxp://vpn-telemetry-sync[.]com/api/v1/health",
+      "description": "Indicator associated with Volt Typhoon. Role: Command & Control (C2) Server. Source context: ...dversary C2 Callback Domain High Domain cloud-gateway-update.net Dynamic DNS Resolver Host High URL http://vpn-telemetry-sync.com/api/v1/health Heartbeat Beacon Endpoint High SHA-256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4 649b934ca495991b785...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[url:value = 'http://vpn-telemetry-sync.com/api/v1/health']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e0099d43-8e24-5f6b-9bcb-b4078fe3838e",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--59d30e9f-4ea4-586e-b316-037d1be24b5d",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--23ea08c9-8ef4-564f-8e53-0130026e5bd2",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--59d30e9f-4ea4-586e-b316-037d1be24b5d",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--c8fff1e5-a18c-593f-a0e0-09391a63c212",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious IPV4: 198[.]51[.]100[.]45",
+      "description": "Indicator associated with Volt Typhoon. Role: Command & Control (C2) Server. Source context: ...y inspection systems. Indicator Type Observed Indicator (Defanged) Role / Association Severity IPv4 198.51.100.45 C2 Operational Proxy Node (Volt Typhoon) High IPv4 203.0.113.19 Compromised SOHO Router Egress Node...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[ipv4-addr:value = '198.51.100.45']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a1d34b33-abae-527a-ba88-aac1916c8555",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--c8fff1e5-a18c-593f-a0e0-09391a63c212",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--73478f78-97e5-5160-aeaf-7ffb685eeb0a",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--c8fff1e5-a18c-593f-a0e0-09391a63c212",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--a01ad2b4-a8a6-553e-afae-1b9dd1784c8e",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious IPV4: 203[.]0[.]113[.]19",
+      "description": "Indicator associated with Volt Typhoon. Role: Command & Control (C2) Server. Source context: ...) Role / Association Severity IPv4 198.51.100.45 C2 Operational Proxy Node (Volt Typhoon) High IPv4 203.0.113.19 Compromised SOHO Router Egress Node High IPv4 192.0.2.88 Staging & Exfiltration Relay High IPv4 198...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[ipv4-addr:value = '203.0.113.19']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b09f71a2-8feb-57f6-9f04-f79bbe5434c3",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--a01ad2b4-a8a6-553e-afae-1b9dd1784c8e",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--921abc47-d453-5cab-ae77-3de53ba5c8c0",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--a01ad2b4-a8a6-553e-afae-1b9dd1784c8e",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--e98896da-4449-532c-878b-97f0b19f31ee",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious IPV4: 192[.]0[.]2[.]88",
+      "description": "Indicator associated with Volt Typhoon. Role: Command & Control (C2) Server. Source context: ...onal Proxy Node (Volt Typhoon) High IPv4 203.0.113.19 Compromised SOHO Router Egress Node High IPv4 192.0.2.88 Staging & Exfiltration Relay High IPv4 198.18.0.14 Reverse Proxy Listener Medium Domain vpn-telemet...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[ipv4-addr:value = '192.0.2.88']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 60
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--8c649d1f-843d-5037-a561-79eae15254b3",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--e98896da-4449-532c-878b-97f0b19f31ee",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f7fee1d4-5f74-564d-a8df-e6e100f4a335",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--e98896da-4449-532c-878b-97f0b19f31ee",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--91bc2f0a-c9d7-570f-813b-f3583bffd8d5",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious IPV4: 198[.]18[.]0[.]14",
+      "description": "Indicator associated with Volt Typhoon. Role: Command & Control (C2) Server. Source context: ....19 Compromised SOHO Router Egress Node High IPv4 192.0.2.88 Staging & Exfiltration Relay High IPv4 198.18.0.14 Reverse Proxy Listener Medium Domain vpn-telemetry-sync.com Adversary C2 Callback Domain High Domai...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[ipv4-addr:value = '198.18.0.14']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--96e7dd0e-6bc5-5747-a8b5-cc37f55809c7",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--91bc2f0a-c9d7-570f-813b-f3583bffd8d5",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a3b14bc2-9918-53f7-9dd8-b61714b7ad97",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--91bc2f0a-c9d7-570f-813b-f3583bffd8d5",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--a5900a67-1e76-5cd5-b62d-7c6d433b4d1a",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious DOMAIN: vpn-telemetry-sync[.]com",
+      "description": "Indicator associated with Volt Typhoon. Role: Command & Control (C2) Server. Source context: ...192.0.2.88 Staging & Exfiltration Relay High IPv4 198.18.0.14 Reverse Proxy Listener Medium Domain vpn-telemetry-sync.com Adversary C2 Callback Domain High Domain cloud-gateway-update.net Dynamic DNS Resolver Host High UR...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[domain-name:value = 'vpn-telemetry-sync.com']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 60
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b76184a5-dabe-5569-a56e-966b66d14d56",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--a5900a67-1e76-5cd5-b62d-7c6d433b4d1a",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--08b784f5-ac80-57de-a21b-8060e22e1aae",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--a5900a67-1e76-5cd5-b62d-7c6d433b4d1a",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--0063a801-f4f0-54dc-a881-0c1a0756857a",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious DOMAIN: cloud-gateway-update[.]net",
+      "description": "Indicator associated with Volt Typhoon. Role: Command & Control (C2) Server. Source context: ...everse Proxy Listener Medium Domain vpn-telemetry-sync.com Adversary C2 Callback Domain High Domain cloud-gateway-update.net Dynamic DNS Resolver Host High URL http://vpn-telemetry-sync.com/api/v1/health Heartbeat Beacon End...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[domain-name:value = 'cloud-gateway-update.net']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6addc70a-f7e1-51b9-9b52-53d76592a8ba",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--0063a801-f4f0-54dc-a881-0c1a0756857a",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--d6a48721-5bb4-50ec-a8e5-3b56ee4c206d",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--0063a801-f4f0-54dc-a881-0c1a0756857a",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--f10a524d-8335-5125-bef3-0e1df9bfe567",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious SHA1: e3b0c44298fc1c149afbf4c8996fb92427ae41e4",
+      "description": "Indicator associated with Volt Typhoon. Role: Command & Control (C2) Server. Source context: ...er Host High URL http://vpn-telemetry-sync.com/api/v1/health Heartbeat Beacon Endpoint High SHA-256 e3b0c44298fc1c149afbf4c8996fb92427ae41e4 649b934ca495991b7852b855 Webshell / Dropper Utility High SHA-256 2c26b46b68ffc68ff99b453c1d30413413...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[file:hashes.'SHA-1' = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a8a5b424-ebb7-52f4-a2b7-085119f88856",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--f10a524d-8335-5125-bef3-0e1df9bfe567",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--8972da05-17a5-5a75-bc07-083d395f6234",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--f10a524d-8335-5125-bef3-0e1df9bfe567",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--2a018ef1-2752-5c9e-b7f2-c23f5b25a2c4",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious SHA1: 2c26b46b68ffc68ff99b453c1d30413413422d70",
+      "description": "Indicator associated with Volt Typhoon. Role: Command & Control (C2) Server. Source context: ...4298fc1c149afbf4c8996fb92427ae41e4 649b934ca495991b7852b855 Webshell / Dropper Utility High SHA-256 2c26b46b68ffc68ff99b453c1d30413413422d70 6483bfa0f98a5e886266e7ae Fast Reverse Proxy (FRP) binary High MD5 d41d8cd98f00b204e9800998ecf8427e...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[file:hashes.'SHA-1' = '2c26b46b68ffc68ff99b453c1d30413413422d70']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 60
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--2a081e80-26a7-5d21-9604-30acaaac70b2",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--2a018ef1-2752-5c9e-b7f2-c23f5b25a2c4",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0da58db3-a1df-5877-8c14-531545f6be92",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--2a018ef1-2752-5c9e-b7f2-c23f5b25a2c4",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--28a28400-e220-52c9-acf6-1b07934ffe6f",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious MD5: d41d8cd98f00b204e9800998ecf8427e",
+      "description": "Indicator associated with Volt Typhoon. Role: Payload Delivery / Dropper. Source context: ...b68ffc68ff99b453c1d30413413422d70 6483bfa0f98a5e886266e7ae Fast Reverse Proxy (FRP) binary High MD5 d41d8cd98f00b204e9800998ecf8427e Staging payload hash Medium Registry Key HKLM\\SOFTWARE\\Microsoft\\Windows\\Curren tVersion\\Run\\VoltSv...",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern": "[file:hashes.'MD5' = 'd41d8cd98f00b204e9800998ecf8427e']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 60
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--07d98031-941c-5554-ba32-cb8c656da172",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--28a28400-e220-52c9-acf6-1b07934ffe6f",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--d4cb2dd4-8416-55b5-9c19-9524bd24c55c",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--28a28400-e220-52c9-acf6-1b07934ffe6f",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--7895b1df-c5ad-5d64-bfd4-c5ca6032cd04",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "name": "Malicious REGISTRY: HKLM\\SOFTWARE\\Microsoft\\Windows\\Curren",
+      "description": "Indicator associated with Volt Typhoon. Role: Persistence / Execution Key. Source context: ...oxy (FRP) binary High MD5 d41d8cd98f00b204e9800998ecf8427e Staging payload hash Medium Registry Key HKLM\\SOFTWARE\\Microsoft\\Windows\\Curren tVersion\\Run\\VoltSvc Adversary Persistence Mechanism High CVE CVE-2023-46805 Ivanti ICS Auth Bypass...",
+      "indicator_types": [
+        "anomalous-activity"
+      ],
+      "pattern": "[windows-registry-key:key = 'HKLM\\SOFTWARE\\Microsoft\\Windows\\Curren']",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "valid_from": "2026-09-05T03:38:47.304Z",
+      "confidence": 85
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a8c2db58-9b0c-50a1-9680-74000f85bfa7",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--7895b1df-c5ad-5d64-bfd4-c5ca6032cd04",
+      "target_ref": "threat-actor--c34b7006-2bd3-516a-b3e1-93eb02509c12"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--edefcf35-c2e1-5c88-aa48-a704ff5de38b",
+      "created_by_ref": "identity--57025cd0-0e3c-58fa-823c-66c359e82173",
+      "created": "2026-09-05T03:38:47.304Z",
+      "modified": "2026-09-05T03:38:47.304Z",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--7895b1df-c5ad-5d64-bfd4-c5ca6032cd04",
+      "target_ref": "malware--b745d165-749a-5b14-b3aa-a3b69c4afd63"
+    }
+  ]
+}
