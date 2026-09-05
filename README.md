@@ -27,6 +27,8 @@ Security Operations Centers (SOCs) and Threat Intelligence teams receive dozens 
 - Automatically identifies vendor branding (CISA, Mandiant, CrowdStrike, Unit 42, Microsoft, Trend Micro) and Traffic Light Protocol (TLP) markings.
 
 ### 2. Hybrid NLP & GenAI Extraction Engine
+- **Named Entity Recognition (NER):** Uses `spacy` to dynamically identify Contextual Threat Entities (Organizations, Geographies, Threat Actors).
+- **GenAI Summarization:** Integrates Google's `gemini-1.5-flash` LLM to read the entire parsed text and draft targeted CISO-level executive summaries.
 - **Auto Refanging / Defanging:** Converts obfuscated indicators back into operational formats while allowing safe defanged viewing.
 - **Indicators of Compromise (IoCs):**
   - **Network:** IPv4, IPv6, Domains, FQDNs, URLs/URIs, Email addresses.
@@ -62,7 +64,7 @@ Security Operations Centers (SOCs) and Threat Intelligence teams receive dozens 
 ### 6. Headless CLI Tooling for SOC Batch Automation
 - Run headless extraction and firewall synthesis directly from your terminal or CI/CD pipelines:
   ```powershell
-  python threat_intel_summarizer/cli.py report.pdf --stix out_stix.json --firewall-dir ./rules
+  python cli.py report.pdf --stix out_stix.json --firewall-dir ./rules
   ```
 
 ---
@@ -102,19 +104,25 @@ threat_intel_summarizer/
 
 ## Quickstart Guide
 
-### 1. Install Dependencies
+### 1. Install Dependencies & NLP Models
 ```powershell
 pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+```
+
+*(Optional)* For Advanced GenAI Summaries, set your Google Gemini API Key:
+```powershell
+export GEMINI_API_KEY="your_api_key_here"
 ```
 
 ### 2. Run Automated Test Suite
 ```powershell
-python -m unittest threat_intel_summarizer.tests.test_engine
+PYTHONPATH=. python -m unittest tests.test_engine
 ```
 
 ### 3. Launch CyberSentinel Web Console
 ```powershell
-python threat_intel_summarizer/run.py
+python run.py
 ```
 Open your browser at: **`http://127.0.0.1:8000`**
 

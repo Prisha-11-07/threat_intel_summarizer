@@ -11,6 +11,11 @@ import json
 from typing import Dict, Any, List, Optional
 import urllib.request
 
+try:
+    import google.generativeai as genai
+except ImportError:
+    genai = None
+
 
 # MITRE ATT&CK Technique Database
 MITRE_ATTACK_DB: Dict[str, Dict[str, str]] = {
@@ -195,6 +200,8 @@ class ThreatAnalyzer:
     def __init__(self, api_key: Optional[str] = None, api_base: Optional[str] = None):
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY") or os.environ.get("GEMINI_API_KEY")
         self.api_base = api_base or os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
+        if genai and self.api_key:
+            genai.configure(api_key=self.api_key)
 
     def analyze(self, parsed_report: Dict[str, Any], extracted_iocs: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -229,7 +236,7 @@ class ThreatAnalyzer:
 
         # 7. Executive Briefing & Defensive Actions
         executive_summary = self._generate_executive_summary(
-            vendor, threat_actor, malware_and_tools, mitre_mapping, extracted_iocs, severity
+            vendor, threat_actor, malware_and_tools, mitre_mapping, extracted_iocs, severity, full_text
         )
 
         tactical_recommendations = self._generate_tactical_recommendations(
@@ -479,7 +486,8 @@ class ThreatAnalyzer:
 
     def _generate_executive_summary(
         self, vendor: str, threat_actor: Dict[str, Any], malware: List[str],
-        mitre: List[Dict[str, Any]], iocs: List[Dict[str, Any]], severity: str
+        mitre: List[Dict[str, Any]], iocs: List[Dict[str, Any]], severity: str,
+        full_text: str = ""
     ) -> str:
         """Generates a concise, high-level briefing tailored for SOC Leads & CISOs."""
         actor_name = threat_actor.get("name", "Unknown Adversary")
@@ -487,7 +495,7 @@ class ThreatAnalyzer:
         ioc_count = len(iocs)
         malware_str = ", ".join(malware[:3]) if malware else "proprietary malware"
 
-        return (
+        fallback_summary = (
             f"This threat intelligence advisory from {vendor} documents active intrusion activity attributed to "
             f"'{actor_name}' ({origin}). The adversary leverages {malware_str} alongside sophisticated living-off-the-land "
             f"methodologies to compromise enterprise perimeters, establish stealthy persistence, and conduct unauthorized operations. "
@@ -495,6 +503,26 @@ class ThreatAnalyzer:
             f"extracted and verified. SOC defensive teams should treat this activity at a {severity} urgency level and immediately "
             f"deploy the generated firewall blocklists, IDS signatures, and endpoint detection queries."
         )
+
+        if genai and self.api_key and full_text:
+            try:
+                # Use gemini-1.5-flash as default fast model
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                prompt = f"""
+                You are a senior SOC analyst. Summarize the following threat intelligence report text.
+                Focus on the attack methodology, tactics, and impact.
+                Keep it concise, professional, and tailored for a CISO briefing.
+                
+                Report Text:
+                {full_text[:30000]}
+                """
+                response = model.generate_content(prompt)
+                if response and response.text:
+                    return response.text.strip()
+            except Exception:
+                pass # Fallback to heuristic
+                
+        return fallback_summary
 
     def _generate_tactical_recommendations(
         self, mitre: List[Dict[str, Any]], iocs: List[Dict[str, Any]], threat_actor: Dict[str, Any]

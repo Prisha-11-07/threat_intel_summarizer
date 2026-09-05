@@ -6,6 +6,7 @@ and confidence calculation for threat intelligence reports.
 
 import re
 import ipaddress
+import spacy
 from typing import List, Dict, Any, Set, Tuple, Optional
 
 
@@ -30,6 +31,10 @@ class IoCExtractor:
 
     def __init__(self):
         self._compile_regexes()
+        try:
+            self.nlp = spacy.load("en_core_web_sm")
+        except Exception:
+            self.nlp = None
 
     def _compile_regexes(self):
         # IPv4 pattern (with optional CIDR)
@@ -344,6 +349,29 @@ class IoCExtractor:
                     "role": "Spear-phishing / Lure Sender",
                     "confidence": "High"
                 })
+
+        # 10. Named Entity Recognition (NER) for Threat Actors and Organizations
+        if self.nlp:
+            doc = self.nlp(refanged_text[:100000])  # Safe limit for spacy
+            for ent in doc.ents:
+                if ent.label_ in ("ORG", "GPE", "PERSON", "NORP"):
+                    ent_str = ent.text.strip()
+                    if len(ent_str) < 3 or len(ent_str) > 50 or '\n' in ent_str:
+                        continue
+                        
+                    key = ("entity", ent_str.lower())
+                    if key not in seen_keys:
+                        seen_keys.add(key)
+                        context = self._get_context_snippet(refanged_text, ent.start_char, ent.end_char)
+                        results.append({
+                            "type": "entity",
+                            "value": ent_str,
+                            "defanged": ent_str,
+                            "page": page_num,
+                            "context": context,
+                            "role": f"NER Entity ({ent.label_})",
+                            "confidence": "Medium"
+                        })
 
         return results
 

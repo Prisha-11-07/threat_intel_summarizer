@@ -12,11 +12,11 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Fil
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from threat_intel_summarizer.core.pdf_parser import ThreatReportParser
-from threat_intel_summarizer.core.extractor import IoCExtractor
-from threat_intel_summarizer.core.analyzer import ThreatAnalyzer
-from threat_intel_summarizer.exporters.stix_generator import STIX21Generator
-from threat_intel_summarizer.exporters.firewall_rules import FirewallRuleGenerator
+from core.pdf_parser import ThreatReportParser
+from core.extractor import IoCExtractor
+from core.analyzer import ThreatAnalyzer
+from exporters.stix_generator import STIX21Generator
+from exporters.firewall_rules import FirewallRuleGenerator
 
 app = FastAPI(
     title="CyberSentinel - Automated Threat Intelligence Engine",

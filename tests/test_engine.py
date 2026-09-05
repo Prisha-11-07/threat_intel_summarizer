@@ -6,11 +6,11 @@ STIX 2.1 JSON validation, and firewall rule synthesis.
 
 import os
 import unittest
-from threat_intel_summarizer.core.extractor import IoCExtractor
-from threat_intel_summarizer.core.pdf_parser import ThreatReportParser
-from threat_intel_summarizer.core.analyzer import ThreatAnalyzer
-from threat_intel_summarizer.exporters.stix_generator import STIX21Generator
-from threat_intel_summarizer.exporters.firewall_rules import FirewallRuleGenerator
+from core.extractor import IoCExtractor
+from core.pdf_parser import ThreatReportParser
+from core.analyzer import ThreatAnalyzer
+from exporters.stix_generator import STIX21Generator
+from exporters.firewall_rules import FirewallRuleGenerator
 
 
 class TestThreatIntelEngine(unittest.TestCase):
@@ -163,7 +163,7 @@ class TestThreatIntelEngine(unittest.TestCase):
 
     def test_taxii_collection_objects(self):
         """Tests TAXII 2.1 collection objects format and response."""
-        from threat_intel_summarizer.app.main import get_or_create_default_taxii_bundle
+        from app.main import get_or_create_default_taxii_bundle
         bundle = get_or_create_default_taxii_bundle()
         self.assertEqual(bundle.get("type"), "bundle")
         self.assertGreater(len(bundle.get("objects", [])), 0)

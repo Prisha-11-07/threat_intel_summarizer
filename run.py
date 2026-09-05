@@ -13,7 +13,7 @@ PARENT_DIR = os.path.dirname(BASE_DIR)
 if PARENT_DIR not in sys.path:
     sys.path.insert(0, PARENT_DIR)
 
-from threat_intel_summarizer.samples.generate_samples import generate_all_samples
+from samples.generate_samples import generate_all_samples
 
 
 def main():
@@ -40,7 +40,7 @@ def main():
     print("    • Press Ctrl+C to terminate the server.\n")
 
     uvicorn.run(
-        "threat_intel_summarizer.app.main:app",
+        "app.main:app",
         host="127.0.0.1",
         port=8000,
         reload=False,
