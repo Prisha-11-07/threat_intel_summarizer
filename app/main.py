@@ -58,14 +58,8 @@ def process_report_pipeline(doc_data: Dict[str, Any]) -> Dict[str, Any]:
         page_iocs = ioc_extractor.extract_from_text(page["text"], page_num=page["page_number"])
         all_iocs.extend(page_iocs)
 
-    # 2. Deduplicate while preserving earliest page reference and highest confidence
-    unique_iocs = []
-    seen_keys = set()
-    for ioc in all_iocs:
-        key = (ioc["type"], ioc["value"].lower())
-        if key not in seen_keys:
-            seen_keys.add(key)
-            unique_iocs.append(ioc)
+    # 2. Canonical deduplication merges occurrences and page provenance.
+    unique_iocs = ioc_extractor.deduplicate_iocs(all_iocs)
 
     # 3. Analyze attack methodology & MITRE mapping
     analysis = threat_analyzer.analyze(doc_data, unique_iocs)

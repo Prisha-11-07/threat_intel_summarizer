@@ -4,16 +4,17 @@ Handles defanging, refanging, regex pattern matching, context extraction,
 and confidence calculation for threat intelligence reports.
 """
 
-import re
 import ipaddress
+import re
+from typing import Any, Dict, List, Set, Tuple
+from urllib.parse import urlparse
+
 import spacy
-from typing import List, Dict, Any, Set, Tuple, Optional
 
 
 class IoCExtractor:
     """Extracts, validates, deduplicates, and defangs/refangs cyber threat indicators."""
 
-    # Common non-domain file extensions to exclude from domain matching
     EXCLUDED_EXTENSIONS = {
         "exe", "dll", "pdf", "docx", "xlsx", "pptx", "zip", "rar", "7z", "tar", "gz",
         "py", "ps1", "sh", "bat", "cmd", "vbs", "js", "bin", "sys", "log", "txt", "cfg",
@@ -21,7 +22,6 @@ class IoCExtractor:
         "png", "jpg", "jpeg", "gif", "svg", "ico"
     }
 
-    # Known Valid Top Level Domains (representative subset for filtering)
     VALID_TLDS = {
         "com", "org", "net", "edu", "gov", "mil", "int", "io", "co", "ai", "ru", "cn",
         "ir", "kp", "xyz", "top", "online", "site", "live", "store", "tech", "club",
@@ -37,343 +37,229 @@ class IoCExtractor:
             self.nlp = None
 
     def _compile_regexes(self):
-        # IPv4 pattern (with optional CIDR)
         self.ipv4_regex = re.compile(
             r"\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}"
             r"(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:\/(?:3[0-2]|[12]?[0-9]))?\b"
         )
+        self.ipv4_candidate_regex = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
 
-        # IPv6 pattern
         self.ipv6_regex = re.compile(
             r"\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b|"
             r"\b(?:[0-9a-fA-F]{1,4}:){1,7}:|:(?::[0-9a-fA-F]{1,4}){1,7}\b|"
             r"\b(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}\b"
         )
 
-        # URLs (handles http, https, ftp, sftp)
         self.url_regex = re.compile(
-            r"\bhttps?:\/\/(?:[a-zA-Z0-9_\-\.\:\@]+@)?[a-zA-Z0-9\.\-]+(?::\d+)?(?:\/[^\s\"'<>\[\]{}|\^`\\]*)?",
-            re.IGNORECASE
+            r'\bhttps?://(?:[A-Za-z0-9_\-\.:\@]+@)?[A-Za-z0-9\.\-]+(?::\d+)?(?:/[^\s"\'<>]*)?',
+            re.IGNORECASE,
         )
 
-        # Generic domain pattern (validated against TLD list and file extensions)
         self.domain_regex = re.compile(
             r"\b(?!(?:https?:\/\/))([a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+([a-zA-Z]{2,63})\b",
-            re.IGNORECASE
+            re.IGNORECASE,
         )
 
-        # File Hashes
         self.md5_regex = re.compile(r"\b[a-fA-F0-9]{32}\b")
         self.sha1_regex = re.compile(r"\b[a-fA-F0-9]{40}\b")
         self.sha256_regex = re.compile(r"\b[a-fA-F0-9]{64}\b")
         self.sha512_regex = re.compile(r"\b[a-fA-F0-9]{128}\b")
 
-        # Windows Registry Keys
         self.registry_regex = re.compile(
             r"\b(?:HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER|HKEY_CLASSES_ROOT|HKEY_USERS|"
             r"HKEY_CURRENT_CONFIG|HKLM|HKCU|HKCR|HKU)"
             r"(?:\\[a-zA-Z0-9_\-\. ]+){1,15}\b",
-            re.IGNORECASE
+            re.IGNORECASE,
         )
 
-        # CVEs
         self.cve_regex = re.compile(r"\bCVE-\d{4}-\d{4,7}\b", re.IGNORECASE)
-
-        # MITRE ATT&CK Technique IDs (e.g., T1059, T1059.001)
         self.mitre_regex = re.compile(r"\bT\d{4}(?:\.\d{3})?\b")
-
-        # Email addresses
-        self.email_regex = re.compile(
-            r"\b[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+\b"
+        self.email_regex = re.compile(r"\b[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+\b")
+        self.file_path_regex = re.compile(
+            r"(?:[A-Za-z]:\\(?:[^\\\s\"'<>]+\\)*[A-Za-z0-9_. -]+(?:\.[A-Za-z0-9]{1,10})+|\\\\[^\\\s\"'<>]+(?:\\\\[^\\\s\"'<>]+)*\\[A-Za-z0-9_. -]+(?:\.[A-Za-z0-9]{1,10})+|(?:[A-Za-z]:)?(?:/|\\\\)[A-Za-z0-9_. -]+(?:[\\/][A-Za-z0-9_. -]+)*(?:\.[A-Za-z0-9]{1,10})+)",
+            re.IGNORECASE,
         )
 
     @staticmethod
     def refang(text: str) -> str:
-        """
-        Converts defanged indicators back to their functional forms for analysis & firewall export.
-        e.g. hxxp[s]:// -> http[s]://
-             192[.]168[.]1[.]1 -> 192.168.1.1
-             evil[@]phish[.]com -> evil@phish.com
-        """
         if not text:
             return ""
-
         s = text
-        # Protocol defanging
         s = re.sub(r"\bh[xX]{2}p(s)?://", r"http\1://", s)
         s = re.sub(r"\bf[xX]p://", r"ftp://", s)
-
-        # Dot defanging: [.], (.), {.}, [[.]]
         s = re.sub(r"\[\.\]|\(\.\)|\{\.\}|\[\[\.\]\]", ".", s)
         s = re.sub(r"\[dot\]|\(dot\)|\{dot\}", ".", s, flags=re.IGNORECASE)
-
-        # Colon defanging: [:]
         s = re.sub(r"\[:\]|\(:\)", ":", s)
-
-        # At defanging: [@], [at]
         s = re.sub(r"\[@\]|\(@\)|\[at\]|\(at\)", "@", s, flags=re.IGNORECASE)
-
-        # Slash defanging: [/]
         s = re.sub(r"\[\/\]|\(\/\)", "/", s)
-
         return s
 
     @staticmethod
     def defang(value: str, ioc_type: str) -> str:
-        """
-        Safely defangs an indicator so it cannot be inadvertently clicked or resolved.
-        """
         if not value:
             return ""
-
-        v = value
-        if ioc_type in ("ipv4", "ipv6", "domain"):
+        v = value.strip()
+        if ioc_type in ("ipv4", "ipv6"):
             v = v.replace(".", "[.]")
+        elif ioc_type == "domain":
+            return v
         elif ioc_type == "url":
             v = re.sub(r"^https?://", lambda m: m.group(0).replace("tt", "xx"), v)
             v = v.replace(".", "[.]")
         elif ioc_type == "email":
             v = v.replace("@", "[@]").replace(".", "[.]")
-
         return v
 
-    def extract_from_text(self, text: str, page_num: int = 1) -> List[Dict[str, Any]]:
-        """
-        Extracts all structured IoCs from raw text, auto-refangs patterns,
-        evaluates context snippets, deduplicates, and calculates confidence.
-        """
-        refanged_text = self.refang(text)
-        results: List[Dict[str, Any]] = []
-        seen_keys: Set[Tuple[str, str]] = set()
+    @staticmethod
+    def normalize_value(value: str, ioc_type: str) -> str:
+        if not value:
+            return ""
+        val = value.strip().strip("\"'[](){}<> ")
+        if ioc_type in ("ipv4", "ipv6"):
+            try:
+                return str(ipaddress.ip_address(val.split("/")[0]))
+            except ValueError:
+                return val.replace("[.]", ".")
+        if ioc_type == "domain":
+            return val.lower().replace("[.]", ".").rstrip(".")
+        if ioc_type == "url":
+            return IoCExtractor.refang(val)
+        if ioc_type == "cve":
+            return val.upper()
+        if ioc_type in ("sha256", "sha1", "md5"):
+            return val.lower()
+        if ioc_type == "email":
+            return val.lower()
+        if ioc_type == "registry":
+            return val
+        if ioc_type == "file_path":
+            return val.replace("/", "\\")
+        return val
 
-        # 1. URLs
-        for match in self.url_regex.finditer(refanged_text):
-            url_str = match.group(0).rstrip(".,;)>'\"")
-            key = ("url", url_str.lower())
-            if key not in seen_keys:
-                seen_keys.add(key)
-                context = self._get_context_snippet(refanged_text, match.start(), match.end())
-                results.append({
-                    "type": "url",
-                    "value": url_str,
-                    "defanged": self.defang(url_str, "url"),
-                    "page": page_num,
-                    "context": context,
-                    "role": self._infer_ioc_role(context, "url"),
-                    "confidence": self._calculate_confidence(url_str, "url", context)
-                })
+    def validate_ioc(self, ioc_type: str, value: str) -> str:
+        normalized = self.normalize_value(value, ioc_type)
 
-        # 2. IPv4 Addresses
-        for match in self.ipv4_regex.finditer(refanged_text):
-            ip_str = match.group(0)
-            if self._is_valid_ipv4(ip_str):
-                key = ("ipv4", ip_str)
-                if key not in seen_keys:
-                    seen_keys.add(key)
-                    context = self._get_context_snippet(refanged_text, match.start(), match.end())
-                    results.append({
-                        "type": "ipv4",
-                        "value": ip_str,
-                        "defanged": self.defang(ip_str, "ipv4"),
-                        "page": page_num,
-                        "context": context,
-                        "role": self._infer_ioc_role(context, "ipv4"),
-                        "confidence": self._calculate_confidence(ip_str, "ipv4", context)
-                    })
+        if ioc_type == "ipv4":
+            try:
+                ip_obj = ipaddress.ip_address(normalized)
+                if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local:
+                    return "PRIVATE"
+                if ip_obj.is_multicast or ip_obj.is_reserved:
+                    return "SUSPICIOUS"
+                return "VALID"
+            except ValueError:
+                return "INVALID"
 
-        # 3. IPv6 Addresses
-        for match in self.ipv6_regex.finditer(refanged_text):
-            ip_str = match.group(0)
-            if self._is_valid_ipv6(ip_str):
-                key = ("ipv6", ip_str.lower())
-                if key not in seen_keys:
-                    seen_keys.add(key)
-                    context = self._get_context_snippet(refanged_text, match.start(), match.end())
-                    results.append({
-                        "type": "ipv6",
-                        "value": ip_str,
-                        "defanged": self.defang(ip_str, "ipv6"),
-                        "page": page_num,
-                        "context": context,
-                        "role": self._infer_ioc_role(context, "ipv6"),
-                        "confidence": self._calculate_confidence(ip_str, "ipv6", context)
-                    })
+        if ioc_type == "ipv6":
+            try:
+                ip_obj = ipaddress.ip_address(normalized)
+                if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local:
+                    return "PRIVATE"
+                if ip_obj.is_multicast or ip_obj.is_reserved:
+                    return "SUSPICIOUS"
+                return "VALID"
+            except ValueError:
+                return "INVALID"
 
-        # 4. Domains (excluding URLs already captured and file extensions)
-        for match in self.domain_regex.finditer(refanged_text):
-            domain_str = match.group(0).rstrip(".,;)>'\"").lower()
-            tld = match.group(2).lower()
+        if ioc_type == "domain":
+            sanitized = normalized.lower()
+            if not re.fullmatch(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}", sanitized):
+                return "INVALID"
+            if sanitized.endswith(".local") or sanitized in {"localhost", "localdomain"}:
+                return "PRIVATE"
+            if any(token in sanitized for token in ["internal", "corp", "local"]):
+                return "SUSPICIOUS"
+            return "VALID"
 
-            if tld in self.EXCLUDED_EXTENSIONS:
-                continue
-            if tld not in self.VALID_TLDS and len(tld) > 4:
-                continue
-            if domain_str.startswith("http://") or domain_str.startswith("https://"):
-                continue
+        if ioc_type == "url":
+            parsed = urlparse(normalized)
+            hostname = (parsed.hostname or "").lower()
+            try:
+                host_ip = ipaddress.ip_address(hostname)
+            except ValueError:
+                host_ip = None
+            if hostname in {"localhost", "localdomain"} or (host_ip and (
+                host_ip.is_private or host_ip.is_loopback or host_ip.is_link_local or
+                host_ip.is_reserved or host_ip.is_unspecified
+            )):
+                return "PRIVATE"
+            if parsed.scheme.lower() in {"http", "https"} and parsed.hostname:
+                return "VALID"
+            return "INVALID"
 
-            # Don't capture IP addresses mistakenly
-            if re.match(r"^\d+\.\d+\.\d+\.\d+$", domain_str):
-                continue
+        if ioc_type in ("md5", "sha1", "sha256"):
+            length = {"md5": 32, "sha1": 40, "sha256": 64}[ioc_type]
+            return "VALID" if re.fullmatch(r"[a-fA-F0-9]{%d}" % length, normalized) else "INVALID"
 
-            key = ("domain", domain_str)
-            if key not in seen_keys:
-                seen_keys.add(key)
-                context = self._get_context_snippet(refanged_text, match.start(), match.end())
-                results.append({
-                    "type": "domain",
-                    "value": domain_str,
-                    "defanged": self.defang(domain_str, "domain"),
-                    "page": page_num,
-                    "context": context,
-                    "role": self._infer_ioc_role(context, "domain"),
-                    "confidence": self._calculate_confidence(domain_str, "domain", context)
-                })
+        if ioc_type == "cve":
+            return "VALID" if re.fullmatch(r"CVE-\d{4}-\d{4,7}", normalized, re.IGNORECASE) else "INVALID"
 
-        # 5. Hashes (Prioritize SHA-256 > SHA-1 > MD5 to avoid sub-hash collisions)
-        for match in self.sha256_regex.finditer(refanged_text):
-            hash_val = match.group(0).lower()
-            key = ("sha256", hash_val)
-            if key not in seen_keys:
-                seen_keys.add(key)
-                context = self._get_context_snippet(refanged_text, match.start(), match.end())
-                results.append({
-                    "type": "sha256",
-                    "value": hash_val,
-                    "defanged": hash_val,
-                    "page": page_num,
-                    "context": context,
-                    "role": self._infer_ioc_role(context, "hash"),
-                    "confidence": self._calculate_confidence(hash_val, "sha256", context)
-                })
+        if ioc_type == "registry":
+            return "VALID" if re.search(r"(?:HKLM|HKCU|HKEY_[A-Z_]+)\\", normalized, re.IGNORECASE) else "INVALID"
 
-        for match in self.sha1_regex.finditer(refanged_text):
-            hash_val = match.group(0).lower()
-            if any(hash_val in sha[1] for sha in seen_keys if sha[0] == "sha256"):
-                continue
-            key = ("sha1", hash_val)
-            if key not in seen_keys:
-                seen_keys.add(key)
-                context = self._get_context_snippet(refanged_text, match.start(), match.end())
-                results.append({
-                    "type": "sha1",
-                    "value": hash_val,
-                    "defanged": hash_val,
-                    "page": page_num,
-                    "context": context,
-                    "role": self._infer_ioc_role(context, "hash"),
-                    "confidence": self._calculate_confidence(hash_val, "sha1", context)
-                })
+        if ioc_type == "email":
+            return "VALID" if re.fullmatch(r"[A-Za-z0-9_.+-]+@[A-Za-z0-9-]+\.[A-Za-z0-9-.]+", normalized) else "INVALID"
 
-        for match in self.md5_regex.finditer(refanged_text):
-            hash_val = match.group(0).lower()
-            if any(hash_val in s[1] for s in seen_keys if s[0] in ("sha256", "sha1")):
-                continue
-            key = ("md5", hash_val)
-            if key not in seen_keys:
-                seen_keys.add(key)
-                context = self._get_context_snippet(refanged_text, match.start(), match.end())
-                results.append({
-                    "type": "md5",
-                    "value": hash_val,
-                    "defanged": hash_val,
-                    "page": page_num,
-                    "context": context,
-                    "role": self._infer_ioc_role(context, "hash"),
-                    "confidence": self._calculate_confidence(hash_val, "md5", context)
-                })
+        if ioc_type == "file_path":
+            if any(normalized.lower().endswith(ext) for ext in (".exe", ".dll", ".bat", ".ps1", ".cmd", ".js", ".vbs")):
+                return "SUSPICIOUS"
+            if re.match(r"(?:[A-Za-z]:)?(?:\\\\|/)(?:Windows|Program Files|Users|Temp|AppData|ProgramData)", normalized, re.IGNORECASE):
+                return "VALID"
+            return "UNKNOWN"
 
-        # 6. Windows Registry Keys
-        for match in self.registry_regex.finditer(refanged_text):
-            reg_key = match.group(0).strip()
-            key = ("registry", reg_key.upper())
-            if key not in seen_keys:
-                seen_keys.add(key)
-                context = self._get_context_snippet(refanged_text, match.start(), match.end())
-                results.append({
-                    "type": "registry",
-                    "value": reg_key,
-                    "defanged": reg_key,
-                    "page": page_num,
-                    "context": context,
-                    "role": "Persistence / Execution Key",
-                    "confidence": "High"
-                })
+        if ioc_type in ("mitre", "entity", "malware", "threat_actor"):
+            return "VALID"
 
-        # 7. CVEs
-        for match in self.cve_regex.finditer(refanged_text):
-            cve_str = match.group(0).upper()
-            key = ("cve", cve_str)
-            if key not in seen_keys:
-                seen_keys.add(key)
-                context = self._get_context_snippet(refanged_text, match.start(), match.end())
-                results.append({
-                    "type": "cve",
-                    "value": cve_str,
-                    "defanged": cve_str,
-                    "page": page_num,
-                    "context": context,
-                    "role": "Exploited Vulnerability",
-                    "confidence": "High"
-                })
+        return "UNKNOWN"
 
-        # 8. MITRE ATT&CK IDs
-        for match in self.mitre_regex.finditer(refanged_text):
-            mitre_id = match.group(0).upper()
-            key = ("mitre", mitre_id)
-            if key not in seen_keys:
-                seen_keys.add(key)
-                context = self._get_context_snippet(refanged_text, match.start(), match.end())
-                results.append({
-                    "type": "mitre",
-                    "value": mitre_id,
-                    "defanged": mitre_id,
-                    "page": page_num,
-                    "context": context,
-                    "role": "Adversary Technique",
-                    "confidence": "High"
-                })
+    def _confidence_label(self, score: int) -> str:
+        if score >= 80:
+            return "High"
+        if score >= 60:
+            return "Medium"
+        return "Low"
 
-        # 9. Email Addresses
-        for match in self.email_regex.finditer(refanged_text):
-            email_str = match.group(0).lower()
-            key = ("email", email_str)
-            if key not in seen_keys:
-                seen_keys.add(key)
-                context = self._get_context_snippet(refanged_text, match.start(), match.end())
-                results.append({
-                    "type": "email",
-                    "value": email_str,
-                    "defanged": self.defang(email_str, "email"),
-                    "page": page_num,
-                    "context": context,
-                    "role": "Spear-phishing / Lure Sender",
-                    "confidence": "High"
-                })
+    def _calculate_confidence_score(self, context: str, ioc_type: str) -> int:
+        ctx = (context or "").lower()
+        score = 45
+        security_terms = [
+            "malicious", "threat", "actor", "c2", "trojan", "malware", "ransomware",
+            "backdoor", "apt", "compromise", "exploit", "beacon", "ioc", "indicator",
+            "stealer", "dropper", "credential", "vulnerability"
+        ]
+        score += 10 * sum(1 for term in security_terms if term in ctx)
+        if ioc_type in ("sha256", "sha1", "md5", "cve", "registry"):
+            score += 20
+        if any(word in ctx for word in ["command and control", "beacon", "payload", "dropped", "persistent"]):
+            score += 10
+        return max(20, min(99, score))
 
-        # 10. Named Entity Recognition (NER) for Threat Actors and Organizations
-        if self.nlp:
-            doc = self.nlp(refanged_text[:100000])  # Safe limit for spacy
-            for ent in doc.ents:
-                if ent.label_ in ("ORG", "GPE", "PERSON", "NORP"):
-                    ent_str = ent.text.strip()
-                    if len(ent_str) < 3 or len(ent_str) > 50 or '\n' in ent_str:
-                        continue
-                        
-                    key = ("entity", ent_str.lower())
-                    if key not in seen_keys:
-                        seen_keys.add(key)
-                        context = self._get_context_snippet(refanged_text, ent.start_char, ent.end_char)
-                        results.append({
-                            "type": "entity",
-                            "value": ent_str,
-                            "defanged": ent_str,
-                            "page": page_num,
-                            "context": context,
-                            "role": f"NER Entity ({ent.label_})",
-                            "confidence": "Medium"
-                        })
-
-        return results
+    def _build_normalized_record(self, ioc_type: str, raw_value: str, page_num: int, context: str, role: str) -> Dict[str, Any]:
+        normalized = self.normalize_value(raw_value, ioc_type)
+        defanged = self.defang(normalized, ioc_type)
+        conf_score = self._calculate_confidence_score(context, ioc_type)
+        status = self.validate_ioc(ioc_type, normalized)
+        record = {
+            "type": ioc_type,
+            "value": raw_value,
+            "normalized_value": normalized,
+            "defanged_value": defanged,
+            "confidence": self._confidence_label(conf_score),
+            "confidence_score": conf_score,
+            "source_page": int(page_num),
+            "source_text": context,
+            "operational_role": role,
+            "validation_status": status,
+            "page": int(page_num),
+            "context": context,
+            "role": role,
+            "defanged": defanged,
+            "page_number": int(page_num),
+            "confidence_label": self._confidence_label(conf_score),
+        }
+        if ioc_type in ("sha256", "sha1", "md5"):
+            record["value"] = normalized.lower()
+            record["defanged_value"] = normalized.lower()
+        return record
 
     def _get_context_snippet(self, text: str, start: int, end: int, window: int = 100) -> str:
         snippet_start = max(0, start - window)
@@ -409,23 +295,6 @@ class IoCExtractor:
             return "Malicious Binary / Artifact"
         return "Observed Indicator"
 
-    def _calculate_confidence(self, value: str, ioc_type: str, context: str) -> str:
-        ctx = context.lower()
-        security_terms = [
-            "malicious", "threat", "actor", "c2", "trojan", "malware", "ransomware",
-            "backdoor", "apt", "compromise", "exploit", "beacon", "ioc", "indicator"
-        ]
-        term_matches = sum(1 for term in security_terms if term in ctx)
-
-        if term_matches >= 2:
-            return "High"
-        elif term_matches == 1:
-            return "Medium"
-        else:
-            if ioc_type in ("sha256", "sha1", "cve", "registry"):
-                return "High"
-            return "Medium"
-
     def _is_valid_ipv4(self, ip_str: str) -> bool:
         try:
             clean_ip = ip_str.split("/")[0]
@@ -446,3 +315,197 @@ class IoCExtractor:
             return True
         except ValueError:
             return False
+
+    def deduplicate_iocs(self, iocs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        grouped: Dict[Tuple[str, str], Dict[str, Any]] = {}
+        for ioc in iocs:
+            ioc_type = str(ioc.get("type") or "unknown").strip().lower()
+            norm = str(ioc.get("normalized_value") or ioc.get("value") or "").strip()
+            if not norm:
+                continue
+            key = (ioc_type, norm.lower())
+            if key not in grouped:
+                rec = dict(ioc)
+                rec["occurrences"] = 1
+                rec["source_pages"] = [int(ioc.get("source_page") or ioc.get("page") or 1)]
+                rec["source_texts"] = [str(ioc.get("source_text") or ioc.get("context") or "")]
+                grouped[key] = rec
+            else:
+                rec = grouped[key]
+                rec["occurrences"] = int(rec.get("occurrences", 1)) + 1
+                if int(ioc.get("confidence_score") or 0) > int(rec.get("confidence_score") or 0):
+                    rec["confidence_score"] = ioc.get("confidence_score")
+                    rec["confidence"] = ioc.get("confidence", rec.get("confidence"))
+                    rec["confidence_label"] = ioc.get("confidence_label", rec.get("confidence_label"))
+                page = int(ioc.get("source_page") or ioc.get("page") or 1)
+                if page not in rec.get("source_pages", []):
+                    rec.setdefault("source_pages", []).append(page)
+                text = str(ioc.get("source_text") or ioc.get("context") or "")
+                if text and text not in rec.get("source_texts", []):
+                    rec.setdefault("source_texts", []).append(text)
+        return list(grouped.values())
+
+    def extract_contextual_entities(self, text: str, page_num: int = 1) -> List[Dict[str, Any]]:
+        results: List[Dict[str, Any]] = []
+        refanged_text = self.refang(text)
+        pattern_strings = [
+            r"\b(?:APT|UNC|FIN|TA|UAC|NOBELIUM|Cozy Bear|Volt Typhoon|Lazarus|APT29)[^\n,;]{0,80}",
+            r"\b(?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*(?:malware|implant|trojan|backdoor|loader|dropper|rat|ransomware|wiper)\b",
+        ]
+        seen: Set[Tuple[str, str]] = set()
+        for pattern in pattern_strings:
+            for match in re.finditer(pattern, refanged_text, re.IGNORECASE):
+                value = match.group(0).strip()
+                if len(value) < 3 or len(value) > 120:
+                    continue
+                lower_value = value.lower()
+                if lower_value in seen:
+                    continue
+                seen.add(("context", lower_value))
+                if re.search(r"\b(?:APT|UNC|FIN|TA)\b", value, re.IGNORECASE):
+                    ioc_type = "threat_actor"
+                    role = "Threat Actor / Campaign Attribution"
+                elif re.search(r"\b(?:malware|implant|trojan|backdoor|loader|dropper|rat|ransomware|wiper)\b", value, re.IGNORECASE):
+                    ioc_type = "malware"
+                    role = "Malware / Tooling"
+                else:
+                    ioc_type = "entity"
+                    role = "Contextual Entity"
+                context = self._get_context_snippet(refanged_text, match.start(), match.end())
+                results.append(self._build_normalized_record(ioc_type, value, page_num, context, role))
+
+        if self.nlp:
+            doc = self.nlp(refanged_text[:120000])
+            for ent in doc.ents:
+                label = ent.label_
+                value = ent.text.strip()
+                if len(value) < 3 or len(value) > 80 or "\n" in value:
+                    continue
+                if label in {"ORG", "PERSON", "NORP", "GPE"}:
+                    if re.search(r"\b(?:APT|UNC|FIN|TA|Lazarus|Volt|Typhoon|APT29|Cozy|Bear|NOBELIUM)\b", value, re.IGNORECASE):
+                        ioc_type = "threat_actor"
+                        role = "Threat Actor / Campaign Attribution"
+                    elif re.search(r"\b(?:malware|implant|trojan|backdoor|loader|dropper|ransomware|wiper|rat)\b", value, re.IGNORECASE):
+                        ioc_type = "malware"
+                        role = "Malware / Tooling"
+                    else:
+                        ioc_type = "entity"
+                        role = "Contextual Entity"
+                    key = (ioc_type, value.lower())
+                    if key not in seen:
+                        seen.add(key)
+                        context = self._get_context_snippet(refanged_text, ent.start_char, ent.end_char)
+                        results.append(self._build_normalized_record(ioc_type, value, page_num, context, role))
+
+        return results
+
+    def extract_from_text(self, text: str, page_num: int = 1) -> List[Dict[str, Any]]:
+        refanged_text = self.refang(text)
+        results: List[Dict[str, Any]] = []
+
+        def add_record(ioc_type: str, raw_value: str, context: str, role: str) -> None:
+            results.append(self._build_normalized_record(ioc_type, raw_value, page_num, context, role))
+
+        for match in self.url_regex.finditer(refanged_text):
+            url_str = match.group(0).rstrip(".,;)>'\"")
+            context = self._get_context_snippet(refanged_text, match.start(), match.end())
+            add_record("url", url_str, context, self._infer_ioc_role(context, "url"))
+
+        for match in self.ipv4_regex.finditer(refanged_text):
+            ip_str = match.group(0)
+            if self._is_valid_ipv4(ip_str):
+                context = self._get_context_snippet(refanged_text, match.start(), match.end())
+                add_record("ipv4", ip_str, context, self._infer_ioc_role(context, "ipv4"))
+
+        # Preserve malformed IPv4-like strings for analyst review instead of silently dropping them.
+        valid_ipv4_spans = {match.span() for match in self.ipv4_regex.finditer(refanged_text)}
+        for match in self.ipv4_candidate_regex.finditer(refanged_text):
+            if any(match.start() >= start and match.end() <= end for start, end in valid_ipv4_spans):
+                continue
+            context = self._get_context_snippet(refanged_text, match.start(), match.end())
+            add_record("ipv4", match.group(0), context, "Malformed / Unvalidated Indicator")
+
+        for match in self.ipv6_regex.finditer(refanged_text):
+            ip_str = match.group(0)
+            if self._is_valid_ipv6(ip_str):
+                context = self._get_context_snippet(refanged_text, match.start(), match.end())
+                add_record("ipv6", ip_str, context, self._infer_ioc_role(context, "ipv6"))
+
+        for match in self.domain_regex.finditer(refanged_text):
+            domain_str = match.group(0).rstrip(".,;)>'\"").lower()
+            tld = match.group(2).lower()
+            if tld in self.EXCLUDED_EXTENSIONS:
+                continue
+            if tld not in self.VALID_TLDS and len(tld) > 4:
+                continue
+            if domain_str.startswith("http://") or domain_str.startswith("https://"):
+                continue
+            if re.match(r"^\d+\.\d+\.\d+\.\d+$", domain_str):
+                continue
+            context = self._get_context_snippet(refanged_text, match.start(), match.end())
+            add_record("domain", domain_str, context, self._infer_ioc_role(context, "domain"))
+
+        for match in self.sha256_regex.finditer(refanged_text):
+            hash_val = match.group(0).lower()
+            context = self._get_context_snippet(refanged_text, match.start(), match.end())
+            add_record("sha256", hash_val, context, self._infer_ioc_role(context, "sha256"))
+
+        for match in self.sha1_regex.finditer(refanged_text):
+            hash_val = match.group(0).lower()
+            if hash_val in {rec["normalized_value"] for rec in results if rec["type"] == "sha256"}:
+                continue
+            context = self._get_context_snippet(refanged_text, match.start(), match.end())
+            add_record("sha1", hash_val, context, self._infer_ioc_role(context, "sha1"))
+
+        for match in self.md5_regex.finditer(refanged_text):
+            hash_val = match.group(0).lower()
+            if hash_val in {rec["normalized_value"] for rec in results if rec["type"] in {"sha256", "sha1"}}:
+                continue
+            context = self._get_context_snippet(refanged_text, match.start(), match.end())
+            add_record("md5", hash_val, context, self._infer_ioc_role(context, "md5"))
+
+        for match in self.registry_regex.finditer(refanged_text):
+            reg_key = match.group(0).strip()
+            context = self._get_context_snippet(refanged_text, match.start(), match.end())
+            add_record("registry", reg_key, context, "Persistence / Execution Key")
+
+        for match in self.cve_regex.finditer(refanged_text):
+            cve_val = match.group(0).upper()
+            context = self._get_context_snippet(refanged_text, match.start(), match.end())
+            add_record("cve", cve_val, context, "Exploited Vulnerability")
+
+        for match in self.mitre_regex.finditer(refanged_text):
+            mitre_val = match.group(0).upper()
+            context = self._get_context_snippet(refanged_text, match.start(), match.end())
+            add_record("mitre", mitre_val, context, "Adversary Technique")
+
+        for match in self.email_regex.finditer(refanged_text):
+            email_val = match.group(0).lower()
+            context = self._get_context_snippet(refanged_text, match.start(), match.end())
+            add_record("email", email_val, context, "Spear-phishing / Lure Sender")
+
+        for match in self.file_path_regex.finditer(refanged_text):
+            file_val = match.group(0).strip()
+            context = self._get_context_snippet(refanged_text, match.start(), match.end())
+            add_record("file_path", file_val, context, "Dropped Artifact / File Path")
+
+        if self.nlp:
+            doc = self.nlp(refanged_text[:100000])
+            for ent in doc.ents:
+                ent_str = ent.text.strip()
+                if len(ent_str) < 3 or len(ent_str) > 80 or "\n" in ent_str:
+                    continue
+                if ent.label_ in {"ORG", "GPE", "PERSON", "NORP"}:
+                    if re.search(r"\b(?:APT|UNC|FIN|TA|Lazarus|Volt|Typhoon|APT29|Cozy|Bear|NOBELIUM)\b", ent_str, re.IGNORECASE):
+                        ioc_type = "threat_actor"
+                        role = "Threat Actor / Campaign Attribution"
+                    elif re.search(r"\b(?:malware|implant|trojan|backdoor|loader|dropper|ransomware|wiper|rat)\b", ent_str, re.IGNORECASE):
+                        ioc_type = "malware"
+                        role = "Malware / Tooling"
+                    else:
+                        ioc_type = "entity"
+                        role = "Contextual Entity"
+                    context = self._get_context_snippet(refanged_text, ent.start_char, ent.end_char)
+                    add_record(ioc_type, ent_str, context, role)
+
+        return results

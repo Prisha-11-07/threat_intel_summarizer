@@ -145,14 +145,21 @@ function renderDashboard(data) {
 
     // Severity & Risk
     const severityBadge = document.getElementById('severityBadge');
-    const severity = analysis.severity || 'HIGH';
-    severityBadge.innerHTML = `<span class="w-2 h-2 rounded-full ${severity === 'CRITICAL' ? 'bg-red-500 animate-ping' : 'bg-amber-500'}"></span> ${severity}`;
+    const severity = analysis.severity || 'UNKNOWN';
+    severityBadge.innerHTML = `<span class="w-2 h-2 rounded-full ${severity === 'CRITICAL' ? 'bg-red-500 animate-ping' : severity === 'UNKNOWN' ? 'bg-slate-500' : 'bg-amber-500'}"></span> ${severity}`;
     if (severity === 'CRITICAL') {
         severityBadge.className = 'px-3 py-1 rounded-md text-xs font-bold font-mono uppercase tracking-wider bg-red-950/80 text-red-400 border border-red-800 flex items-center gap-1.5';
+    } else if (severity === 'UNKNOWN') {
+        severityBadge.className = 'px-3 py-1 rounded-md text-xs font-bold font-mono uppercase tracking-wider bg-slate-900 text-slate-400 border border-slate-700 flex items-center gap-1.5';
     } else {
         severityBadge.className = 'px-3 py-1 rounded-md text-xs font-bold font-mono uppercase tracking-wider bg-amber-950/80 text-amber-400 border border-amber-800 flex items-center gap-1.5';
     }
-    document.getElementById('riskScore').textContent = analysis.risk_score || 85;
+    document.getElementById('riskScore').textContent = Number.isFinite(Number(analysis.risk_score)) ? analysis.risk_score : '—';
+    document.getElementById('riskFactors').textContent = (analysis.risk_factors || []).map(factor => `${factor.factor}: +${factor.points}`).join(' | ') || 'No scored evidence';
+    document.querySelector('#killChainGrid')?.previousElementSibling?.querySelector('span:last-child')?.replaceChildren(document.createTextNode(`${(analysis.kill_chain || []).length} Stages Tracked`));
+    document.getElementById('analysisStatus').textContent = analysis.analysis_status === 'completed'
+        ? 'GenAI analysis completed from uploaded report evidence'
+        : `GenAI analysis unavailable: ${analysis.analysis_error || 'No provider result returned'}`;
 
     // IoC Totals
     document.getElementById('totalIoCs').textContent = data.iocs.length;
@@ -206,8 +213,22 @@ function renderDashboard(data) {
         malwareList.appendChild(span);
     });
 
+    const vulnerabilitiesList = document.getElementById('vulnerabilitiesList');
+    vulnerabilitiesList.innerHTML = '';
+    (analysis.vulnerabilities || []).forEach(vulnerability => {
+        const item = document.createElement('div');
+        const id = typeof vulnerability === 'string' ? vulnerability : vulnerability.id;
+        const description = typeof vulnerability === 'string' ? '' : vulnerability.description;
+        item.innerHTML = `<span class="text-red-300 font-mono">${escapeHtml(id || 'Unspecified')}</span>${description ? ` <span>${escapeHtml(description)}</span>` : ''}`;
+        vulnerabilitiesList.appendChild(item);
+    });
+    if (!vulnerabilitiesList.children.length) {
+        vulnerabilitiesList.textContent = 'No vulnerabilities established by GenAI evidence.';
+    }
+
     // 5. Cyber Kill Chain
     renderKillChain(analysis.kill_chain || []);
+    document.getElementById('attackMethodologyText').textContent = analysis.attack_methodology || 'No attack methodology established by GenAI evidence.';
 
     // 6. MITRE ATT&CK
     renderMitreMatrix(analysis.mitre_attack || []);
@@ -277,6 +298,8 @@ function renderMitreMatrix(techniques) {
             </div>
             <h4 class="text-xs font-bold text-white">${tech.name}</h4>
             <p class="text-[11px] text-slate-400 line-clamp-2">${tech.description}</p>
+            <p class="text-[11px] text-slate-300"><b class="text-slate-400">Evidence:</b> ${escapeHtml(tech.evidence || 'Not provided')}</p>
+            <p class="text-[10px] text-slate-500"><b class="text-slate-400">Source page:</b> ${escapeHtml(tech.source_page || 'Unknown')}</p>
             <div class="pt-2 border-t border-slate-900 text-[10px] text-slate-500">
                 <b class="text-slate-400">Mitigation:</b> ${tech.mitigation}
             </div>
@@ -296,24 +319,31 @@ function renderIoCTable() {
         const matchesType = currentTypeFilter === 'all' || 
             (currentTypeFilter === 'sha256' ? ['sha256', 'sha1', 'md5'].includes(ioc.type) : ioc.type === currentTypeFilter);
         
-        const valToSearch = (showDefanged ? ioc.defanged : ioc.value).toLowerCase();
+        const valToSearch = (showDefanged ? (ioc.defanged_value || ioc.defanged) : (ioc.normalized_value || ioc.value)).toLowerCase();
         const matchesQuery = !query || 
             valToSearch.includes(query) || 
             (ioc.role || '').toLowerCase().includes(query) ||
-            ioc.type.toLowerCase().includes(query);
+            ioc.type.toLowerCase().includes(query) ||
+            (ioc.validation_status || '').toLowerCase().includes(query);
 
         return matchesType && matchesQuery;
     });
 
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">No matching threat indicators found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">No matching threat indicators found.</td></tr>`;
         return;
     }
 
     filtered.forEach(ioc => {
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-950/60 transition';
-        const displayVal = showDefanged ? ioc.defanged : ioc.value;
+        const displayVal = showDefanged ? (ioc.defanged_value || ioc.defanged || ioc.value) : (ioc.normalized_value || ioc.value);
+        const status = (ioc.validation_status || 'UNKNOWN').toUpperCase();
+        const statusClass = status === 'VALID' ? 'bg-emerald-950 text-emerald-400 border-emerald-800' :
+            status === 'PRIVATE' ? 'bg-amber-950 text-amber-400 border-amber-800' :
+            status === 'INVALID' ? 'bg-red-950 text-red-400 border-red-800' :
+            'bg-slate-800 text-slate-300 border-slate-700';
+        const pages = (ioc.source_pages || [ioc.source_page || ioc.page || 1]).join(', ');
 
         tr.innerHTML = `
             <td class="py-3 px-4">
@@ -324,6 +354,9 @@ function renderIoCTable() {
             <td class="py-3 px-4 font-mono text-white text-xs select-all">
                 ${escapeHtml(displayVal)}
             </td>
+            <td class="py-3 px-4">
+                <span class="px-2 py-0.5 rounded text-[10px] border ${statusClass}">${status}</span>
+            </td>
             <td class="py-3 px-4 text-slate-300 text-xs">
                 ${escapeHtml(ioc.role || 'Observed Indicator')}
             </td>
@@ -332,8 +365,11 @@ function renderIoCTable() {
                     ${ioc.confidence || 'Medium'}
                 </span>
             </td>
+            <td class="py-3 px-4 text-slate-400 text-center">
+                ${ioc.occurrences || 1}
+            </td>
             <td class="py-3 px-4 text-slate-400">
-                p. ${ioc.page || 1}
+                ${escapeHtml(`p. ${pages}`)}
             </td>
             <td class="py-3 px-4 text-right">
                 <button onclick="copyToClipboard('${escapeJs(showDefanged ? ioc.defanged : ioc.value)}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Copy Indicator">
@@ -501,7 +537,7 @@ function downloadIoCCSV() {
 
 function copyAllIoCs() {
     if (!currentReportData || !currentReportData.iocs) return;
-    const lines = currentReportData.iocs.map(i => showDefanged ? i.defanged : i.value);
+    const lines = currentReportData.iocs.map(i => showDefanged ? (i.defanged_value || i.defanged || i.value) : (i.normalized_value || i.value));
     copyToClipboard(lines.join('\n'));
 }
 

@@ -182,6 +182,8 @@ class STIX21Generator:
 
         # 6. Indicator SDOs with STIX 2.1 Pattern Language
         for ioc in iocs:
+            if str(ioc.get("validation_status", "VALID")).upper() != "VALID":
+                continue
             pattern = self._build_stix_pattern(ioc)
             if not pattern:
                 continue
@@ -197,7 +199,7 @@ class STIX21Generator:
                 "created_by_ref": identity_id,
                 "created": now,
                 "modified": now,
-                "name": f"Malicious {ioc['type'].upper()}: {ioc.get('defanged')}",
+                "name": f"Validated {ioc['type'].upper()}: {ioc.get('defanged_value', ioc.get('defanged'))}",
                 "description": f"Indicator associated with {actor_name}. Role: {ioc.get('role')}. Source context: {ioc.get('context')}",
                 "indicator_types": [ind_type_label],
                 "pattern": pattern,

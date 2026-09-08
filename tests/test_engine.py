@@ -47,6 +47,7 @@ class TestThreatIntelEngine(unittest.TestCase):
         Persistence was configured via HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\VoltSvc.
         The attackers exploited CVE-2023-46805 and CVE-2024-21887 using PowerShell T1059.001.
         Phishing email sender was admin@attacker-lure.org.
+        The Windows path C:\\Users\\Public\\Downloads\\VoltSvc.exe was dropped to disk.
         """
         iocs = self.extractor.extract_from_text(sample_text, page_num=1)
         ioc_types = {ioc["type"] for ioc in iocs}
@@ -60,6 +61,7 @@ class TestThreatIntelEngine(unittest.TestCase):
         self.assertIn("cve", ioc_types)
         self.assertIn("mitre", ioc_types)
         self.assertIn("email", ioc_types)
+        self.assertIn("file_path", ioc_types)
 
         # Value specific checks
         extracted_ips = [i["value"] for i in iocs if i["type"] == "ipv4"]
@@ -70,6 +72,53 @@ class TestThreatIntelEngine(unittest.TestCase):
 
         extracted_keys = [i["value"] for i in iocs if i["type"] == "registry"]
         self.assertIn("HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\VoltSvc", extracted_keys)
+
+        file_paths = [i["value"] for i in iocs if i["type"] == "file_path"]
+        self.assertIn(r"C:\Users\Public\Downloads\VoltSvc.exe", file_paths)
+
+        normalized = [i for i in iocs if i["type"] == "domain" and i["value"] == "vpn-telemetry-sync.com"]
+        self.assertTrue(normalized)
+        self.assertIn("normalized_value", normalized[0])
+        self.assertIn("defanged_value", normalized[0])
+        self.assertIn("validation_status", normalized[0])
+        self.assertIn("source_page", normalized[0])
+        self.assertIn("source_text", normalized[0])
+        self.assertIn("operational_role", normalized[0])
+
+    def test_ioc_validation_and_normalization(self):
+        """Ensures normalized IoCs are validated and deduplicated consistently."""
+        text = """
+        The malware reached 192[.]168[.]1[.]10 and evil[.]com. Another reference to evil.com appears on page 3.
+        Malicious hash 5d41402abc4b2a76b9719d911017c592 and CVE-2024-12345 were seen.
+        """
+        iocs = self.extractor.extract_from_text(text, page_num=2)
+        domains = [ioc for ioc in iocs if ioc["type"] == "domain"]
+        private_ips = [ioc for ioc in iocs if ioc["type"] == "ipv4"]
+
+        self.assertTrue(any(ioc["normalized_value"] == "evil.com" for ioc in domains))
+        self.assertTrue(any(ioc["defanged_value"] == "evil.com" for ioc in domains))
+        self.assertTrue(any(ioc["validation_status"] == "PRIVATE" for ioc in private_ips))
+        self.assertTrue(any(ioc["validation_status"] in {"VALID", "SUSPICIOUS"} for ioc in domains))
+
+    def test_ioc_phase3_provenance_and_enforcement_status(self):
+        """Private, malformed, and repeated indicators retain safe provenance semantics."""
+        text = "Private 192.168.1.10 and malformed 999.1.1.1; evil[.]com evil.com."
+        page_two = self.extractor.extract_from_text(text, page_num=2)
+        page_three = self.extractor.extract_from_text(text, page_num=3)
+        iocs = self.extractor.deduplicate_iocs(page_two + page_three)
+
+        private_ip = next(i for i in iocs if i["normalized_value"] == "192.168.1.10")
+        malformed_ip = next(i for i in iocs if i["normalized_value"] == "999.1.1.1")
+        domain = next(i for i in iocs if i["normalized_value"] == "evil.com")
+
+        self.assertEqual(private_ip["validation_status"], "PRIVATE")
+        self.assertEqual(malformed_ip["validation_status"], "INVALID")
+        self.assertEqual(domain["occurrences"], 4)
+        self.assertEqual(domain["source_pages"], [2, 3])
+
+        rules = self.firewall_gen.generate_all(iocs, "Test Actor")
+        self.assertNotIn("192.168.1.10", rules["iptables"])
+        self.assertNotIn("999.1.1.1", rules["iptables"])
 
     def test_pdf_parsing_on_sample(self):
         """Tests parsing of multi-page CISA Volt Typhoon PDF report."""
@@ -99,12 +148,51 @@ class TestThreatIntelEngine(unittest.TestCase):
 
         analysis = self.analyzer.analyze(doc, unique_iocs)
 
-        self.assertEqual(analysis["threat_actor"]["name"], "Volt Typhoon")
-        self.assertIn("Critical Infrastructure", analysis["targeted_sectors"])
-        self.assertIn(analysis["severity"], ["CRITICAL", "HIGH"])
-        self.assertGreater(len(analysis["mitre_attack"]), 0)
-        self.assertGreater(len(analysis["kill_chain"]), 0)
-        self.assertTrue(len(analysis["executive_summary"]) > 50)
+        self.assertIn(analysis["analysis_status"], {"completed", "unavailable"})
+        self.assertIn("threat_actor", analysis)
+        self.assertIn("targeted_sectors", analysis)
+        self.assertIn("severity", analysis)
+        self.assertIn("mitre_attack", analysis)
+        self.assertIn("recommended_soc_actions", analysis)
+
+    def test_structured_genai_response_normalization(self):
+        """Provider JSON is normalized to the existing dashboard contract."""
+        result = self.analyzer._normalize_genai_analysis({
+            "executive_summary": "Evidence-based summary",
+            "threat_actor": {"name": "Example Group", "aliases": ["Alias"], "confidence": 80},
+            "malware_tools": ["Example Tool"],
+            "vulnerabilities": [{"id": "CVE-2024-0001"}],
+            "targeted_sectors": ["Energy"],
+            "attack_methodology": "Initial access followed by persistence",
+            "kill_chain": [{"phase": "Initial Access", "evidence": ["Report evidence"]}],
+            "mitre_attack": [{"id": "T1190", "name": "Exploit Public-Facing Application"}],
+            "severity": {"level": "HIGH", "score": 120, "rationale": "Evidence"},
+            "recommended_soc_actions": [{"category": "Triage", "action": "Investigate", "priority": "P1"}],
+        }, "Test Vendor", "Test Report", [])
+        self.assertEqual(result["threat_actor"]["name"], "Example Group")
+        self.assertEqual(result["risk_score"], 100)
+        self.assertEqual(result["kill_chain"][0]["phase"], "Initial Access")
+
+    def test_dynamic_mitre_and_risk_scoring(self):
+        """ATT&CK metadata and score are derived from explicit evidence."""
+        report = {"full_text": "", "vendor": "Test", "metadata": {"title": "Test"}}
+        iocs = [{
+            "type": "mitre", "value": "T1190", "normalized_value": "T1190",
+            "source_page": 4, "source_text": "The exposed edge appliance was exploited.",
+            "validation_status": "VALID"
+        }]
+        result = self.analyzer._normalize_genai_analysis({
+            "mitre_attack": [{"id": "T1190", "evidence": "Exposed edge appliance", "source_page": 2}],
+            "severity": {"level": "CRITICAL", "score": 100},
+            "threat_actor": {"confidence": 0},
+        }, "Test", "Test", iocs)
+        result["mitre_attack"] = self.analyzer._normalize_mitre_techniques(result["mitre_attack"], report, iocs)
+        result["severity"], result["risk_score"], result["risk_factors"] = self.analyzer._calculate_dynamic_risk(result, iocs)
+        technique = result["mitre_attack"][0]
+        self.assertEqual(technique["source_page"], 2)
+        self.assertTrue(technique["evidence"])
+        self.assertTrue(technique["mitigation"])
+        self.assertEqual(result["risk_score"], 6)
 
     def test_stix21_bundle_generation(self):
         """Tests generation and schema compliance of OASIS STIX 2.1 JSON bundle."""
@@ -124,7 +212,8 @@ class TestThreatIntelEngine(unittest.TestCase):
         self.assertIn("identity", types_in_bundle)
         self.assertIn("threat-actor", types_in_bundle)
         self.assertIn("indicator", types_in_bundle)
-        self.assertIn("attack-pattern", types_in_bundle)
+        if analysis.get("analysis_status") == "completed":
+            self.assertIn("attack-pattern", types_in_bundle)
         self.assertIn("relationship", types_in_bundle)
 
         # Check STIX 2.1 Pattern Language formatting

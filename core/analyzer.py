@@ -223,50 +223,235 @@ class ThreatAnalyzer:
         5. Severity & Risk Scoring
         6. SOC Executive Summary & Tactical Action Items
         """
-        full_text = parsed_report.get("full_text", "")
         vendor = parsed_report.get("vendor", "Threat Research")
-
-        # 1. Threat Actor Identification
-        threat_actor = self._identify_threat_actor(full_text)
-
-        # 2. MITRE ATT&CK Mapping
-        mitre_mapping = self._map_mitre_techniques(full_text, extracted_iocs)
-
-        # 3. Kill Chain Reconstruction
-        kill_chain = self._reconstruct_kill_chain(full_text, mitre_mapping, extracted_iocs)
-
-        # 4. Targeted Industries & Geographies
-        targeted_sectors = self._extract_sectors(full_text, threat_actor)
-
-        # 5. Malware Families & Exploits
-        malware_and_tools = self._extract_malware_and_tools(full_text)
-
-        # 6. Severity & Risk Scoring
-        severity, risk_score = self._calculate_severity(extracted_iocs, threat_actor, mitre_mapping)
-
-        # 7. Executive Briefing & Defensive Actions
-        executive_summary = self._generate_executive_summary(
-            vendor, threat_actor, malware_and_tools, mitre_mapping, extracted_iocs, severity, full_text
+        report_title = parsed_report.get("metadata", {}).get("title", "Threat Intelligence Advisory")
+        llm_result, llm_error = self._generate_genai_analysis(parsed_report, extracted_iocs)
+        result = self._normalize_genai_analysis(llm_result, vendor, report_title, extracted_iocs)
+        result["mitre_attack"] = self._normalize_mitre_techniques(
+            result.get("mitre_attack", []), parsed_report, extracted_iocs
         )
-
-        tactical_recommendations = self._generate_tactical_recommendations(
-            mitre_mapping, extracted_iocs, threat_actor
+        result["severity"], result["risk_score"], result["risk_factors"] = self._calculate_dynamic_risk(
+            result, extracted_iocs
         )
+        result["analysis_status"] = "completed" if llm_result else "unavailable"
+        if llm_error:
+            result["analysis_error"] = llm_error
+        return result
 
+    def _generate_genai_analysis(
+        self, parsed_report: Dict[str, Any], extracted_iocs: List[Dict[str, Any]]
+    ) -> tuple[Dict[str, Any] | None, str | None]:
+        """Request one evidence-grounded, JSON-only analysis from the configured provider."""
+        full_text = str(parsed_report.get("full_text", ""))
+        if not full_text.strip():
+            return None, "The report contained no text for GenAI analysis."
+        if not self.api_key:
+            return None, "No GenAI API key is configured. Set GEMINI_API_KEY, OPENAI_API_KEY, or NVIDIA_API_KEY."
+
+        schema = {
+            "executive_summary": "string",
+            "threat_actor": {"name": "string", "aliases": ["string"], "confidence": "number", "evidence": ["string"]},
+            "malware_tools": ["string"],
+            "vulnerabilities": [{"id": "string", "description": "string", "evidence": "string"}],
+            "targeted_sectors": ["string"],
+            "attack_methodology": "string",
+            "mitre_attack": [{"id": "string", "name": "string", "tactic": "string", "description": "string", "mitigation": "string", "evidence": "string", "source_page": "number"}],
+            "severity": {"level": "LOW|MEDIUM|HIGH|CRITICAL", "score": "number", "rationale": "string"},
+            "recommended_soc_actions": [{"category": "string", "action": "string", "priority": "P1|P2|P3", "evidence": "string"}]
+        }
+        prompt = (
+            "Analyze this threat intelligence report as a senior SOC analyst. Use only evidence in the report "
+            "and the extracted indicators. Do not infer a named actor, malware, vulnerability, sector, or ATT&CK "
+            "technique when the evidence is absent. Return ONLY valid JSON matching this schema; use empty arrays, "
+            "Unknown, or LOW when evidence is insufficient. Do not include markdown.\n\n"
+            f"Schema:\n{json.dumps(schema)}\n\n"
+            f"Extracted indicators:\n{json.dumps(extracted_iocs[:500], ensure_ascii=True)}\n\n"
+            f"Report text:\n{full_text[:100000]}"
+        )
+        try:
+            if self.api_key.startswith("nvapi-"):
+                return self._call_nvidia_json(prompt), None
+            if self._gemini_client:
+                response = self._gemini_client.models.generate_content(
+                    model=os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"),
+                    contents=prompt,
+                    config={"response_mime_type": "application/json"},
+                )
+                return self._parse_json_response(getattr(response, "text", "")), None
+            return None, "The configured GenAI provider is unavailable."
+        except Exception as exc:
+            return None, f"GenAI analysis failed: {type(exc).__name__}: {exc}"
+
+    def _call_nvidia_json(self, prompt: str) -> Dict[str, Any]:
+        url = os.environ.get("NVIDIA_API_URL", "https://integrate.api.nvidia.com/v1/chat/completions")
+        payload = {
+            "model": os.environ.get("NVIDIA_MODEL", "meta/llama-3.2-11b-vision-instruct"),
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.1,
+            "max_tokens": 2500,
+            "response_format": {"type": "json_object"}
+        }
+        request = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Authorization": f"Bearer {self.api_key}", "Accept": "application/json", "Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(request, timeout=60) as response:
+            body = json.loads(response.read().decode("utf-8"))
+        content = body["choices"][0]["message"]["content"]
+        return self._parse_json_response(content)
+
+    @staticmethod
+    def _parse_json_response(content: str) -> Dict[str, Any]:
+        text = str(content or "").strip()
+        if text.startswith("```"):
+            text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.IGNORECASE | re.DOTALL).strip()
+        parsed = json.loads(text)
+        if not isinstance(parsed, dict):
+            raise ValueError("GenAI response was not a JSON object")
+        return parsed
+
+    def _normalize_genai_analysis(
+        self, data: Dict[str, Any] | None, vendor: str, report_title: str, extracted_iocs: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """Make provider output safe and compatible with the existing CyberSentinel UI."""
+        data = data or {}
+        actor = data.get("threat_actor") if isinstance(data.get("threat_actor"), dict) else {}
+        severity = data.get("severity") if isinstance(data.get("severity"), dict) else {}
+        actions = data.get("recommended_soc_actions") if isinstance(data.get("recommended_soc_actions"), list) else []
+        mitre = data.get("mitre_attack") if isinstance(data.get("mitre_attack"), list) else []
+        kill_chain = data.get("kill_chain") if isinstance(data.get("kill_chain"), list) else []
         return {
-            "threat_actor": threat_actor,
-            "malware_families": malware_and_tools,
-            "severity": severity,
-            "risk_score": risk_score,
-            "targeted_sectors": targeted_sectors,
-            "mitre_attack": mitre_mapping,
-            "kill_chain": kill_chain,
-            "executive_summary": executive_summary,
-            "tactical_recommendations": tactical_recommendations,
+            "threat_actor": {
+                "name": str(actor.get("name") or "Unknown / Not established"),
+                "aliases": self._string_list(actor.get("aliases")),
+                "origin": "GenAI report attribution",
+                "motivation": "Not established by report evidence",
+                "tactics": str(data.get("attack_methodology") or "Not established by report evidence"),
+                "targets": self._string_list(data.get("targeted_sectors")),
+                "confidence": actor.get("confidence", 0),
+                "evidence": self._string_list(actor.get("evidence")),
+            },
+            "malware_families": self._string_list(data.get("malware_tools")),
+            "vulnerabilities": data.get("vulnerabilities") if isinstance(data.get("vulnerabilities"), list) else [],
+            "severity": str(severity.get("level") or "LOW").upper(),
+            "risk_score": self._bounded_score(severity.get("score")),
+            "severity_rationale": str(severity.get("rationale") or "No GenAI severity rationale was returned."),
+            "targeted_sectors": self._string_list(data.get("targeted_sectors")),
+            "mitre_attack": mitre,
+            "kill_chain": [
+                {
+                    "phase": str(stage.get("phase") or "Unspecified"),
+                    "icon": "fa-shield",
+                    "evidence": self._string_list(stage.get("evidence")),
+                }
+                for stage in kill_chain if isinstance(stage, dict)
+            ],
+            "attack_methodology": str(data.get("attack_methodology") or "Not established by report evidence."),
+            "executive_summary": str(data.get("executive_summary") or "No GenAI executive summary was returned."),
+            "tactical_recommendations": actions,
+            "recommended_soc_actions": actions,
             "total_indicators": len(extracted_iocs),
             "vendor": vendor,
-            "report_title": parsed_report.get("metadata", {}).get("title", "Threat Intelligence Advisory")
+            "report_title": report_title,
         }
+
+    def _normalize_mitre_techniques(
+        self, techniques: Any, parsed_report: Dict[str, Any], extracted_iocs: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Normalize model mappings and add explicit extracted ATT&CK evidence."""
+        normalized: Dict[str, Dict[str, Any]] = {}
+        for technique in techniques if isinstance(techniques, list) else []:
+            if not isinstance(technique, dict):
+                continue
+            technique_id = str(technique.get("id") or "").upper().strip()
+            if not re.fullmatch(r"T\d{4}(?:\.\d{3})?", technique_id):
+                continue
+            catalog = MITRE_ATTACK_DB.get(technique_id, {})
+            normalized[technique_id] = {
+                "id": technique_id,
+                "name": str(technique.get("name") or catalog.get("name") or technique_id),
+                "tactic": str(technique.get("tactic") or catalog.get("tactic") or "Unknown"),
+                "description": str(technique.get("description") or catalog.get("desc") or ""),
+                "evidence": str(technique.get("evidence") or "Model identified behavior in report text."),
+                "source_page": self._bounded_page(technique.get("source_page")),
+                "mitigation": str(technique.get("mitigation") or catalog.get("mitigation") or "Apply defense-in-depth controls."),
+            }
+
+        for ioc in extracted_iocs:
+            technique_id = str(ioc.get("normalized_value") or ioc.get("value") or "").upper()
+            if ioc.get("type") != "mitre" or not re.fullmatch(r"T\d{4}(?:\.\d{3})?", technique_id):
+                continue
+            catalog = MITRE_ATTACK_DB.get(technique_id, {})
+            normalized.setdefault(technique_id, {
+                "id": technique_id,
+                "name": catalog.get("name", technique_id),
+                "tactic": catalog.get("tactic", "Unknown"),
+                "description": catalog.get("desc", "Explicit ATT&CK identifier extracted from the report."),
+                "evidence": ioc.get("source_text") or ioc.get("context") or "Explicit ATT&CK identifier in report.",
+                "source_page": self._bounded_page(ioc.get("source_page") or ioc.get("page")),
+                "mitigation": catalog.get("mitigation", "Apply defense-in-depth controls."),
+            })
+        return list(normalized.values())
+
+    @staticmethod
+    def _bounded_page(value: Any) -> int | None:
+        try:
+            page = int(value)
+            return page if page > 0 else None
+        except (TypeError, ValueError):
+            return None
+
+    def _calculate_dynamic_risk(
+        self, analysis: Dict[str, Any], extracted_iocs: List[Dict[str, Any]]
+    ) -> tuple[str, int, List[Dict[str, Any]]]:
+        """Score observable evidence; the model's severity number is never authoritative."""
+        score = 0
+        factors: List[Dict[str, Any]] = []
+
+        techniques = analysis.get("mitre_attack", [])
+        technique_points = min(len(techniques) * 6, 30)
+        if technique_points:
+            score += technique_points
+            factors.append({"factor": "ATT&CK techniques", "points": technique_points, "evidence": f"{len(techniques)} mapped techniques"})
+
+        valid_iocs = [ioc for ioc in extracted_iocs if str(ioc.get("validation_status", "VALID")).upper() == "VALID"]
+        infrastructure = [ioc for ioc in valid_iocs if ioc.get("type") in {"ipv4", "ipv6", "domain", "url"}]
+        infrastructure_points = min(len(infrastructure) * 2, 20)
+        if infrastructure_points:
+            score += infrastructure_points
+            factors.append({"factor": "Validated infrastructure", "points": infrastructure_points, "evidence": f"{len(infrastructure)} validated network indicators"})
+
+        vulnerabilities = analysis.get("vulnerabilities", [])
+        vulnerability_points = min(len(vulnerabilities) * 8, 24)
+        if vulnerability_points:
+            score += vulnerability_points
+            factors.append({"factor": "Reported vulnerabilities", "points": vulnerability_points, "evidence": f"{len(vulnerabilities)} reported vulnerabilities"})
+
+        actor_confidence = analysis.get("threat_actor", {}).get("confidence", 0)
+        try:
+            actor_points = min(max(int(float(actor_confidence)) // 20, 0), 5)
+        except (TypeError, ValueError):
+            actor_points = 0
+        if actor_points:
+            score += actor_points
+            factors.append({"factor": "Threat actor attribution confidence", "points": actor_points, "evidence": f"Model confidence {actor_confidence}"})
+
+        score = min(score, 100)
+        level = "CRITICAL" if score >= 75 else "HIGH" if score >= 50 else "MEDIUM" if score >= 25 else "LOW"
+        return level, score, factors
+
+    @staticmethod
+    def _string_list(value: Any) -> List[str]:
+        return [str(item).strip() for item in value if str(item).strip()] if isinstance(value, list) else []
+
+    @staticmethod
+    def _bounded_score(value: Any) -> int:
+        try:
+            return max(0, min(100, int(float(value))))
+        except (TypeError, ValueError):
+            return 0
 
     def _identify_threat_actor(self, text: str) -> Dict[str, Any]:
         """Matches threat actor names, aliases, and known attribution markers."""
@@ -387,7 +572,8 @@ class ThreatAnalyzer:
         for ioc in iocs:
             ioc_type = ioc["type"]
             role = ioc.get("role", "")
-            if ioc_type in ("ipv4", "domain", "url") and "c2" in role.lower():
+            enforceable = str(ioc.get("validation_status", "VALID")).upper() == "VALID"
+            if enforceable and ioc_type in ("ipv4", "domain", "url") and "c2" in role.lower():
                 stages[5]["evidence"].append(f"C2 Endpoint: {ioc.get('defanged')}")
             elif ioc_type == "registry":
                 stages[2]["evidence"].append(f"Registry Key: {ioc.get('value')}")
@@ -472,11 +658,11 @@ class ThreatAnalyzer:
             score += 25
 
         # Critical vulnerabilities (CVEs)
-        cve_count = sum(1 for i in iocs if i.get("type") == "cve")
+        cve_count = sum(1 for i in iocs if i.get("type") == "cve" and self._is_validated_ioc(i))
         score += min(cve_count * 10, 20)
 
         # Active C2 infrastructure
-        c2_count = sum(1 for i in iocs if i.get("type") in ("ipv4", "domain", "url"))
+        c2_count = sum(1 for i in iocs if i.get("type") in ("ipv4", "domain", "url") and self._is_validated_ioc(i))
         score += min(c2_count * 2, 15)
 
         # Ransomware / Wiper techniques
@@ -493,6 +679,11 @@ class ThreatAnalyzer:
             return "MEDIUM", score
         else:
             return "LOW", score
+
+    @staticmethod
+    def _is_validated_ioc(ioc: Dict[str, Any]) -> bool:
+        """Indicators marked private or invalid must not raise threat risk."""
+        return str(ioc.get("validation_status", "VALID")).upper() == "VALID"
 
     def _generate_executive_summary(
         self, vendor: str, threat_actor: Dict[str, Any], malware: List[str],

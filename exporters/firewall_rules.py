@@ -14,6 +14,12 @@ class FirewallRuleGenerator:
     def __init__(self):
         pass
 
+    @staticmethod
+    def _enforceable(ioc: Dict[str, Any]) -> bool:
+        """Only validated indicators enter automatic blocking configurations."""
+        status = str(ioc.get("validation_status", "VALID")).upper()
+        return status == "VALID"
+
     def generate_all(self, iocs: List[Dict[str, Any]], threat_actor: str = "Adversary") -> Dict[str, str]:
         """Generates configuration artifacts across all supported defense platforms."""
         return {
@@ -41,7 +47,7 @@ class FirewallRuleGenerator:
 
         # IP drop rules
         for ioc in iocs:
-            if ioc["type"] == "ipv4":
+            if ioc["type"] == "ipv4" and self._enforceable(ioc):
                 ip = ioc["value"]
                 rule = (
                     f'drop ip any any <> {ip} any ('
@@ -53,7 +59,7 @@ class FirewallRuleGenerator:
 
         # Domain DNS inspection rules
         for ioc in iocs:
-            if ioc["type"] == "domain":
+            if ioc["type"] == "domain" and self._enforceable(ioc):
                 domain = ioc["value"]
                 rule = (
                     f'drop dns any any -> any 53 ('
@@ -66,7 +72,7 @@ class FirewallRuleGenerator:
 
         # HTTP / TLS Host rules
         for ioc in iocs:
-            if ioc["type"] == "url":
+            if ioc["type"] == "url" and self._enforceable(ioc):
                 url = ioc["value"]
                 rule = (
                     f'drop http any any -> any any ('
@@ -81,9 +87,9 @@ class FirewallRuleGenerator:
 
     def to_palo_alto(self, iocs: List[Dict[str, Any]], threat_actor: str) -> str:
         """Generates PAN-OS CLI configuration and External Dynamic List (EDL) text."""
-        ips = [i["value"] for i in iocs if i["type"] == "ipv4"]
-        domains = [i["value"] for i in iocs if i["type"] == "domain"]
-        urls = [i["value"] for i in iocs if i["type"] == "url"]
+        ips = [i["value"] for i in iocs if i["type"] == "ipv4" and self._enforceable(i)]
+        domains = [i["value"] for i in iocs if i["type"] == "domain" and self._enforceable(i)]
+        urls = [i["value"] for i in iocs if i["type"] == "url" and self._enforceable(i)]
 
         lines = [
             f"# Palo Alto Networks PAN-OS Configuration Commands",
@@ -120,8 +126,8 @@ class FirewallRuleGenerator:
 
     def to_fortigate(self, iocs: List[Dict[str, Any]], threat_actor: str) -> str:
         """Generates Fortinet FortiGate FortiOS CLI configuration script."""
-        ips = [i["value"] for i in iocs if i["type"] == "ipv4"]
-        domains = [i["value"] for i in iocs if i["type"] == "domain"]
+        ips = [i["value"] for i in iocs if i["type"] == "ipv4" and self._enforceable(i)]
+        domains = [i["value"] for i in iocs if i["type"] == "domain" and self._enforceable(i)]
 
         lines = [
             f"# Fortinet FortiGate FortiOS Configuration",
@@ -185,7 +191,7 @@ class FirewallRuleGenerator:
 
     def to_cisco_asa(self, iocs: List[Dict[str, Any]], threat_actor: str) -> str:
         """Generates Cisco ASA / Firepower access-list and object-group configuration."""
-        ips = [i["value"] for i in iocs if i["type"] == "ipv4"]
+        ips = [i["value"] for i in iocs if i["type"] == "ipv4" and self._enforceable(i)]
         group_name = f"OG_BLOCK_{threat_actor.replace(' ', '_')[:16]}"
 
         lines = [
@@ -209,7 +215,7 @@ class FirewallRuleGenerator:
 
     def to_iptables(self, iocs: List[Dict[str, Any]], threat_actor: str) -> str:
         """Generates Linux iptables / nftables shell commands for Linux gateways."""
-        ips = [i["value"] for i in iocs if i["type"] == "ipv4"]
+        ips = [i["value"] for i in iocs if i["type"] == "ipv4" and self._enforceable(i)]
 
         lines = [
             f"#!/usr/bin/env bash",
@@ -233,6 +239,8 @@ class FirewallRuleGenerator:
         ]
 
         for ioc in iocs:
+            if not self._enforceable(ioc):
+                continue
             ioc_type = ioc["type"]
             val = ioc["value"]
             conf = ioc.get("confidence", "High")
@@ -258,7 +266,8 @@ class FirewallRuleGenerator:
             val = f'"{ioc["value"]}"'
             defanged = f'"{ioc.get("defanged", ioc["value"])}"'
             role = f'"{ioc.get("role", "Indicator")}"'
-            lines.append(f"{val},{ioc['type']},{defanged},\"{threat_actor}\",{role},{ioc.get('confidence', 'High')},BLOCK")
+            action = "BLOCK" if self._enforceable(ioc) else "REVIEW"
+            lines.append(f"{val},{ioc['type']},{defanged},\"{threat_actor}\",{role},{ioc.get('confidence', 'High')},{action}")
 
         return "\n".join(lines)
 
@@ -266,7 +275,7 @@ class FirewallRuleGenerator:
         """Generates Hash Blocklist CSV for CrowdStrike Falcon, Carbon Black, Defender for Endpoint."""
         lines = ["hash,hash_type,threat_actor,policy_action,comment"]
         for ioc in iocs:
-            if ioc["type"] in ("sha256", "sha1", "md5"):
+            if ioc["type"] in ("sha256", "sha1", "md5") and self._enforceable(ioc):
                 lines.append(f"{ioc['value']},{ioc['type'].upper()},\"{threat_actor}\",ALWAYS_BLOCK,\"Threat Intel Ingestion: {threat_actor}\"")
 
         return "\n".join(lines)
