@@ -86,6 +86,7 @@ def process_report_pipeline(doc_data: Dict[str, Any]) -> Dict[str, Any]:
         "iocs": unique_iocs,
         "ioc_breakdown": ioc_breakdown,
         "stix_bundle": stix_bundle,
+        "stix_validation": stix_generator.validate_bundle(stix_bundle),
         "firewall_rules": firewall_configs
     }
 
@@ -185,6 +186,10 @@ async def export_stix_bundle(payload: Dict[str, Any] = Body(...)):
     stix_bundle = payload.get("stix_bundle")
     if not stix_bundle:
         raise HTTPException(status_code=400, detail="Missing stix_bundle payload.")
+
+    validation = stix_generator.validate_bundle(stix_bundle)
+    if not validation["valid"]:
+        raise HTTPException(status_code=422, detail={"message": "STIX bundle failed validation.", "errors": validation["errors"]})
 
     return JSONResponse(
         content=stix_bundle,

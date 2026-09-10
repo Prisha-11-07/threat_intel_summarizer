@@ -212,9 +212,13 @@ class TestThreatIntelEngine(unittest.TestCase):
         self.assertIn("identity", types_in_bundle)
         self.assertIn("threat-actor", types_in_bundle)
         self.assertIn("indicator", types_in_bundle)
+        self.assertIn("report", types_in_bundle)
+        self.assertIn("vulnerability", types_in_bundle)
         if analysis.get("analysis_status") == "completed":
             self.assertIn("attack-pattern", types_in_bundle)
         self.assertIn("relationship", types_in_bundle)
+        validation = self.stix_gen.validate_bundle(bundle)
+        self.assertTrue(validation["valid"], validation["errors"])
 
         # Check STIX 2.1 Pattern Language formatting
         indicators = [obj for obj in bundle["objects"] if obj["type"] == "indicator"]
@@ -222,6 +226,25 @@ class TestThreatIntelEngine(unittest.TestCase):
             self.assertEqual(ind["pattern_version"], "2.1")
             self.assertEqual(ind["pattern_type"], "stix")
             self.assertTrue(ind["pattern"].startswith("[") and ind["pattern"].endswith("]"))
+
+    def test_stix_bundle_validation_rejects_broken_reference(self):
+        """Validation must block bundles with unresolved relationship references."""
+        validation = self.stix_gen.validate_bundle({
+            "type": "bundle",
+            "id": "bundle--00000000-0000-0000-0000-000000000000",
+            "objects": [{
+                "type": "relationship",
+                "spec_version": "2.1",
+                "id": "relationship--00000000-0000-0000-0000-000000000000",
+                "created": "2026-01-01T00:00:00.000Z",
+                "modified": "2026-01-01T00:00:00.000Z",
+                "relationship_type": "uses",
+                "source_ref": "threat-actor--00000000-0000-0000-0000-000000000001",
+                "target_ref": "malware--00000000-0000-0000-0000-000000000002"
+            }]
+        })
+        self.assertFalse(validation["valid"])
+        self.assertTrue(any("does not resolve" in error for error in validation["errors"]))
 
     def test_firewall_rule_generation(self):
         """Tests generation of firewall rules for Palo Alto, Fortigate, Cisco, and Suricata."""

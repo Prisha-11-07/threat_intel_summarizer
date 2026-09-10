@@ -398,9 +398,10 @@
                         <button onclick="copySTIX()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono font-semibold flex items-center gap-1.5 transition">
                             <i class="fa-solid fa-copy"></i> Copy JSON
                         </button>
-                        <button onclick="downloadSTIX()" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-semibold flex items-center gap-1.5 shadow transition">
+                        <button id="downloadStixBtn" onclick="downloadSTIX()" disabled class="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-500 text-xs font-mono font-semibold flex items-center gap-1.5 shadow transition cursor-not-allowed">
                             <i class="fa-solid fa-download"></i> Download STIX 2.1 JSON
                         </button>
+                        <span id="stixValidationStatus" class="text-[10px] font-mono text-slate-500">Awaiting validated bundle</span>
                     </div>
                 </div>
 

@@ -7,6 +7,7 @@ Indicator, and Relationship SDOs/SROs.
 
 import uuid
 import datetime
+import re
 from typing import Dict, Any, List
 
 
@@ -35,6 +36,7 @@ class STIX21Generator:
         Builds a complete, valid STIX 2.1 Bundle dictionary.
         """
         now = self._get_timestamp()
+        iocs = self._deduplicate_iocs(iocs)
         objects: List[Dict[str, Any]] = []
 
         # 1. Identity SDO (Reporting Organization / SOC)
@@ -238,6 +240,29 @@ class STIX21Generator:
                     "target_ref": primary_malware
                 })
 
+        # 7. Report SDO ties the generated intelligence to the source advisory.
+        report_title = analysis.get("report_title") or "Threat Intelligence Report"
+        report_id = self._generate_deterministic_id("report", report_title)
+        report_refs = [identity_id, actor_id]
+        report_refs.extend(malware_refs)
+        report_refs.extend(
+            obj["id"] for obj in objects
+            if obj.get("type") in {"indicator", "vulnerability", "attack-pattern"}
+        )
+        objects.append({
+            "type": "report",
+            "spec_version": "2.1",
+            "id": report_id,
+            "created_by_ref": identity_id,
+            "created": now,
+            "modified": now,
+            "name": str(report_title),
+            "description": str(analysis.get("executive_summary") or "Generated from extracted report intelligence."),
+            "report_types": ["threat-report"],
+            "published": now,
+            "object_refs": report_refs,
+        })
+
         # 7. Final STIX 2.1 Bundle Container
         bundle_id = f"bundle--{uuid.uuid4()}"
         bundle = {
@@ -247,6 +272,91 @@ class STIX21Generator:
         }
 
         return bundle
+
+    def validate_bundle(self, bundle: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate the generated bundle without accepting static or incomplete objects."""
+        errors: List[str] = []
+        if bundle.get("type") != "bundle":
+            errors.append("Bundle type must be 'bundle'.")
+        if not re.fullmatch(r"bundle--[0-9a-f-]{36}", str(bundle.get("id", ""))):
+            errors.append("Bundle ID is not a UUID-based STIX ID.")
+
+        objects = bundle.get("objects")
+        if not isinstance(objects, list) or not objects:
+            errors.append("Bundle must contain objects.")
+            return {"valid": False, "errors": errors, "object_count": 0}
+
+        object_ids = set()
+        supported_types = {"identity", "threat-actor", "malware", "indicator", "vulnerability", "attack-pattern", "report", "relationship"}
+        for index, obj in enumerate(objects):
+            prefix = f"objects[{index}]"
+            if not isinstance(obj, dict):
+                errors.append(f"{prefix} is not an object.")
+                continue
+            obj_type = obj.get("type")
+            obj_id = str(obj.get("id", ""))
+            if obj_type not in supported_types:
+                errors.append(f"{prefix} has unsupported type {obj_type!r}.")
+            if not re.fullmatch(rf"{re.escape(str(obj_type))}--[0-9a-f-]{{36}}", obj_id):
+                errors.append(f"{prefix} has an invalid STIX ID.")
+            if obj_id in object_ids:
+                errors.append(f"{prefix} duplicates ID {obj_id}.")
+            object_ids.add(obj_id)
+            if obj.get("spec_version") != "2.1":
+                errors.append(f"{prefix} is missing STIX 2.1 spec_version.")
+            for timestamp_field in ("created", "modified"):
+                if not self._valid_timestamp(obj.get(timestamp_field)):
+                    errors.append(f"{prefix}.{timestamp_field} is not an ISO-8601 UTC timestamp.")
+            if obj_type in {"threat-actor", "malware", "indicator", "vulnerability", "attack-pattern", "report"}:
+                if not obj.get("created_by_ref") or obj["created_by_ref"] not in object_ids and obj["created_by_ref"] != objects[0].get("id"):
+                    errors.append(f"{prefix}.created_by_ref does not reference an identity.")
+            if obj_type == "indicator":
+                if obj.get("pattern_type") != "stix" or obj.get("pattern_version") != "2.1":
+                    errors.append(f"{prefix} is missing STIX 2.1 indicator metadata.")
+                if not self._valid_stix_pattern(obj.get("pattern")):
+                    errors.append(f"{prefix}.pattern is not a supported STIX pattern.")
+                if not isinstance(obj.get("valid_from"), str) or not self._valid_timestamp(obj["valid_from"]):
+                    errors.append(f"{prefix}.valid_from is invalid.")
+            if obj_type == "report" and not obj.get("object_refs"):
+                errors.append(f"{prefix}.object_refs must not be empty.")
+
+        for index, obj in enumerate(objects):
+            if obj.get("type") == "relationship":
+                for ref_field in ("source_ref", "target_ref"):
+                    if obj.get(ref_field) not in object_ids:
+                        errors.append(f"objects[{index}].{ref_field} does not resolve.")
+            if obj.get("type") == "report":
+                for ref in obj.get("object_refs", []):
+                    if ref not in object_ids:
+                        errors.append(f"Report object reference {ref} does not resolve.")
+
+        return {"valid": not errors, "errors": errors, "object_count": len(objects)}
+
+    @staticmethod
+    def _valid_timestamp(value: Any) -> bool:
+        if not isinstance(value, str) or not value.endswith("Z"):
+            return False
+        try:
+            datetime.datetime.fromisoformat(value[:-1] + "+00:00")
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
+    def _valid_stix_pattern(pattern: Any) -> bool:
+        if not isinstance(pattern, str) or not pattern.startswith("[") or not pattern.endswith("]"):
+            return False
+        return ":" in pattern and "=" in pattern
+
+    @staticmethod
+    def _deduplicate_iocs(iocs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        unique: Dict[tuple[str, str], Dict[str, Any]] = {}
+        for ioc in iocs:
+            ioc_type = str(ioc.get("type") or "").lower()
+            value = str(ioc.get("normalized_value") or ioc.get("value") or "").lower()
+            if ioc_type and value and (ioc_type, value) not in unique:
+                unique[(ioc_type, value)] = ioc
+        return list(unique.values())
 
     def _build_stix_pattern(self, ioc: Dict[str, Any]) -> str:
         """Constructs valid STIX 2.1 pattern language expressions."""

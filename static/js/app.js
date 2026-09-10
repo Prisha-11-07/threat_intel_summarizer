@@ -442,6 +442,17 @@ function renderSTIXViewer() {
     const bundle = currentReportData.stix_bundle;
     const viewer = document.getElementById('stixJsonViewer');
     viewer.textContent = JSON.stringify(bundle, null, 2);
+    const validation = currentReportData.stix_validation || { valid: false };
+    const downloadButton = document.getElementById('downloadStixBtn');
+    const validationStatus = document.getElementById('stixValidationStatus');
+    downloadButton.disabled = !validation.valid;
+    downloadButton.className = validation.valid
+        ? 'px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-semibold flex items-center gap-1.5 shadow transition'
+        : 'px-3 py-1.5 rounded-lg bg-slate-700 text-slate-500 text-xs font-mono font-semibold flex items-center gap-1.5 shadow transition cursor-not-allowed';
+    validationStatus.textContent = validation.valid
+        ? `Validated STIX 2.1 bundle (${validation.object_count} objects)`
+        : `STIX validation failed: ${(validation.errors || []).join(' ')}`;
+    validationStatus.className = validation.valid ? 'text-[10px] font-mono text-emerald-400' : 'text-[10px] font-mono text-red-400';
 
     // Compute SDO breakdown metrics
     const counts = {};
@@ -496,6 +507,11 @@ function selectFirewallTab(tabKey) {
 // Download & Export Handlers
 function downloadSTIX() {
     if (!currentReportData || !currentReportData.stix_bundle) return;
+    const validation = currentReportData.stix_validation;
+    if (!validation || !validation.valid) {
+        showToast('STIX bundle failed validation and cannot be downloaded', true);
+        return;
+    }
     const jsonStr = JSON.stringify(currentReportData.stix_bundle, null, 2);
     downloadBlob(jsonStr, 'threat_report_stix2.1.json', 'application/json');
     showToast('STIX 2.1 Bundle downloaded');
